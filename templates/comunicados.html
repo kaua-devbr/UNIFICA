@@ -1,0 +1,43 @@
+{% extends 'base.html' %}
+{% block titulo %}Comunicados{% endblock %}
+{% block conteudo %}
+    <div class="avisos">
+        <div class="barra-avisos">
+            <form class="busca" method="get" action="{{ url_for('portal.comunicados') }}" role="search">
+                <input type="hidden" name="categoria" value="{{ categoria }}">
+                <input type="search" name="busca" value="{{ busca }}" placeholder="Pesquisar comunicados..." maxlength="100" aria-label="Pesquisar comunicados">
+                <button class="botao" type="submit">Buscar</button>
+            </form>
+            <a class="avatar" href="{{ url_for('portal.perfil') }}" aria-label="Meu perfil">{{ session.usuario[0] }}</a>
+        </div>
+        <form method="post" action="{{ url_for('portal.comunicados', categoria=categoria, busca=busca) }}">
+            <input type="hidden" name="form_token" value="{{ session.form_token }}">
+            <div class="titulo-avisos">
+                <h1>Comunicados</h1>
+                <button class="botao" type="submit" name="comunicado" value="todos">Marcar todos como lidos</button>
+            </div>
+            <nav class="filtros" aria-label="Filtrar comunicados">
+                {% for chave, texto in categorias.items() %}
+                    <a href="{{ url_for('portal.comunicados', categoria=chave, busca=busca) }}"{% if categoria == chave %} aria-current="true"{% endif %}>{{ texto }}</a>
+                {% endfor %}
+            </nav>
+            <ul class="lista-avisos">
+                {% for id, tipo, titulo, texto, tempo in comunicados %}
+                    <li>
+                        <div>
+                            <h2>{% if id not in lidos %}<span class="ponto" aria-label="Não lido" role="img"></span>{% endif %}{{ titulo }}</h2>
+                            <p>{{ texto }}</p>
+                        </div>
+                        <div class="aviso-acoes">
+                            <small>{{ tempo }}</small>
+                            {% if id not in lidos %}<button class="botao" type="submit" name="comunicado" value="{{ id }}">Marcar como lido</button>
+                            {% else %}<span>Lido</span>{% endif %}
+                        </div>
+                    </li>
+                {% else %}
+                    <li>Nenhum comunicado encontrado.</li>
+                {% endfor %}
+            </ul>
+        </form>
+    </div>
+{% endblock %}

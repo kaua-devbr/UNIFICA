@@ -1,0 +1,10 @@
+* {box-sizing:border-box}
+body {background:#edf2f7;color:#192f45;font:1rem/1.5 system-ui;margin:0;padding:5vh 1rem}
+main {max-width:36rem;background:white;border-radius:1rem;padding:clamp(1.2rem,5vw,3rem);margin:auto}
+form,label {display:grid;gap:.45rem}
+form {gap:1rem}
+label:has([type=checkbox]) {display:block}
+input:not([type=checkbox]),button {padding:.7rem;font:inherit;border-radius:.4rem;border:1px solid #728597}
+button {background:#18496b;color:white;cursor:pointer}
+a {color:#175b85}
+[role=alert] {color:#922333}

@@ -1,0 +1,41 @@
+{% extends 'base.html' %}
+{% block titulo %}Calendário{% endblock %}
+{% block conteudo %}
+    <h1>Calendário</h1>
+    <div class="agenda">
+        <section class="painel" aria-label="Calendário mensal">
+            <header class="mes">
+                {% if anterior %}<a class="botao" href="{{ url_for('portal.calendario', dia=anterior.isoformat()) }}" aria-label="Mês anterior">‹</a>{% else %}<span></span>{% endif %}
+                <h2>{{ titulo_mes }}</h2>
+                {% if seguinte %}<a class="botao" href="{{ url_for('portal.calendario', dia=seguinte.isoformat()) }}" aria-label="Próximo mês">›</a>{% else %}<span></span>{% endif %}
+            </header>
+            <div class="grade">
+                {% for dia in ('Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb') %}
+                    <strong class="dia-semana">{{ dia }}</strong>
+                {% endfor %}
+                {% for semana in semanas %}
+                    {% for dia in semana %}
+                        {% if dia.month == selecionado.month %}
+                            <a class="dia" href="{{ url_for('portal.calendario', dia=dia.isoformat()) }}"
+                                aria-label="{{ dia.strftime('%d/%m/%Y') }}{% if dia in eventos %}, com eventos{% endif %}"
+                                {% if dia == selecionado %}aria-current="date"{% endif %}>
+                                {{ dia.day }}
+                                {% if dia in eventos %}<span class="ponto" aria-hidden="true"></span>{% endif %}
+                            </a>
+                        {% else %}
+                            <span class="dia vazio" aria-hidden="true"></span>
+                        {% endif %}
+                    {% endfor %}
+                {% endfor %}
+            </div>
+        </section>
+        <section class="painel eventos">
+            <h2>Eventos de {{ titulo_dia }}</h2>
+            {% for horario, descricao in eventos.get(selecionado, []) %}
+                <article><strong>{{ horario }}</strong><p>{{ descricao }}</p></article>
+            {% else %}
+                <p>Sem eventos neste dia.</p>
+            {% endfor %}
+        </section>
+    </div>
+{% endblock %}
