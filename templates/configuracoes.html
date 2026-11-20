@@ -1,0 +1,43 @@
+{% extends 'base.html' %}
+{% block titulo %}Configurações{% endblock %}
+{% block conteudo %}
+    <div class="configuracoes">
+        {% set mensagens = get_flashed_messages(with_categories=true) %}
+        {% for categoria, mensagem in mensagens %}
+            <p class="mensagem {{ categoria }}" role="{{ 'alert' if categoria == 'erro-senha' else 'status' }}">{{ mensagem }}</p>
+        {% endfor %}
+        <section aria-labelledby="seguranca">
+            <h1 id="seguranca">Segurança da conta</h1>
+            <div class="painel destaque seguranca">
+                <a class="botao" href="/sso/senha">Alterar minha senha</a>
+                <p>Informe sua senha atual para alterar a senha de todos os serviços.</p>
+                <a href="/perfil">Ver meu perfil</a>
+            </div>
+        </section>
+        <section aria-labelledby="aparencia">
+            <h2 id="aparencia">Estilo de página</h2>
+            <form method="post" action="{{ url_for('portal.configuracoes') }}" class="preferencias">
+                <input type="hidden" name="form_token" value="{{ session.form_token }}">
+                <input type="hidden" name="acao" value="aparencia">
+                <label class="painel destaque">Tema
+                    <select name="tema">
+                        <option value="claro"{% if session.get('tema', 'claro') == 'claro' %} selected{% endif %}>Branco</option>
+                        <option value="escuro"{% if session.get('tema') == 'escuro' %} selected{% endif %}>Escuro</option>
+                    </select>
+                </label>
+                <label class="painel destaque">Fonte
+                    <select name="fonte">
+                        <option value="normal"{% if session.get('fonte', 'normal') == 'normal' %} selected{% endif %}>Normal</option>
+                        <option value="grande"{% if session.get('fonte') == 'grande' %} selected{% endif %}>Grande</option>
+                    </select>
+                </label>
+                <button class="botao principal" type="submit">Salvar preferências</button>
+            </form>
+        </section>
+        <section aria-labelledby="sobre">
+            <h2 id="sobre">Sobre o sistema</h2>
+            <p class="painel destaque"><strong>Última atualização</strong> 06 de novembro de 2026</p>
+            <p class="painel destaque"><strong>Versão atual</strong> 0.1</p>
+        </section>
+    </div>
+{% endblock %}

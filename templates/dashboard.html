@@ -1,0 +1,10 @@
+{% extends 'base.html' %}
+{% block titulo %}Início{% endblock %}
+{% block conteudo %}
+    <h1>Olá, {{ session.usuario }}!</h1>
+    <div class="atalhos">
+        <a class="painel" href="{{ url_for('portal.calendario') }}">Ver calendário</a>
+        <a class="painel" href="{{ url_for('portal.comunicados') }}">Ler comunicados</a>
+        <a class="painel" href="{{ url_for('portal.perfil') }}">Ver perfil</a>
+    </div>
+{% endblock %}

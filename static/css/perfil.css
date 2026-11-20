@@ -1,0 +1,347 @@
+
+/* CONFIGURAÇÕES GERAIS */
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: Arial, sans-serif;
+}
+
+body {
+    background-color: #f0f1f5;
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+/* CONTAINER PRINCIPAL */
+
+.container {
+    width: 1162px;
+    height: 653px;
+    display: flex;
+    background-color: white;
+    overflow: hidden;
+}
+
+/* MENU LATERAL */
+
+.menu {
+    width: 195px;
+    height: 99%;
+    background-color: #f1f1ff;
+    position: relative;
+    flex-shrink: 0;
+}
+
+/* LOGO */
+
+.logo {
+    margin-top: 8px;
+    margin-left: 37px;
+    margin-bottom: 85px;
+}
+
+.logo img {
+    width: 100px;
+    height: 70px;
+    object-fit: contain;
+    display: block;
+}
+
+.logo h2 {
+    font-size: 25px;
+    color: #20243b;
+}
+
+.logo p {
+    font-size: 10px;
+    color: gray;
+    font-weight: bold;
+}
+
+/* LINKS DO MENU */
+
+nav {
+    padding: 0 0 0 6px;
+}
+
+nav a {
+    height: 42px;
+    display: flex;
+    align-items: center;
+    gap: 18px;
+    padding-left: 23px;
+
+    text-decoration: none;
+    color: #303348;
+    font-size: 12px;
+}
+
+nav a img {
+    width: 17px;
+    height: 17px;
+}
+
+/* ITEM SELECIONADO */
+
+nav a.selecionado {
+    background-color: #9799ee;
+    color: #17133e;
+    font-weight: bold;
+    border-radius: 6px;
+    border-left: 5px solid #4555ed;
+    padding-left: 18px;
+}
+
+/* SAIR DA CONTA */
+
+.sair {
+    position: absolute;
+    bottom: 27px;
+    left: 39px;
+    background: none;
+    border: 0;
+    padding: 0;
+    cursor: pointer;
+
+    display: flex;
+    align-items: center;
+    gap: 12px;
+
+    color: #b51e25;
+    font-size: 13px;
+    font-weight: bold;
+}
+
+.sair img {
+    width: 20px;
+    height: 20px;
+}
+
+/* CONTEÚDO */
+
+.conteudo {
+    width: 967px;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+}
+
+/* INFORMAÇÕES DO USUÁRIO */
+
+.usuario {
+    height: 180px;
+    min-height: 180px;
+
+    display: flex;
+    align-items: center;
+
+    padding-left: 58px;
+    padding-top: 10px;
+}
+
+.foto {
+    width: 52px;
+    height: 52px;
+
+    border-radius: 50%;
+    background-color: #495be5;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    color: white;
+    font-weight: bold;
+    font-size: 16px;
+}
+
+.usuario-info {
+    margin-left: 5px;
+}
+
+.usuario-info h3 {
+    font-size: 18px;
+    color: #111;
+}
+
+.usuario-info p {
+    font-size: 12px;
+    color: #77788a;
+    font-weight: bold;
+}
+
+/* DADOS DO PERFIL */
+
+.dados {
+    height: 285px;
+    min-height: 285px;
+
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    grid-template-rows: 105px 105px;
+
+    padding: 33px 35px 0;
+    column-gap: 20px;
+}
+
+.campo {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.campo h4 {
+    font-size: 16px;
+    margin-bottom: 5px;
+    color: #111;
+}
+
+.campo input {
+    width: 170px;
+    height: 39px;
+
+    border: none;
+    border-radius: 30px;
+
+    background-color: #cecff8;
+
+    text-align: center;
+    color: #77788a;
+    font-size: 11px;
+    font-weight: bold;
+}
+
+/* SEÇÃO GMAIL */
+
+.gmail {
+    flex: 1;
+    background-color: #e2f0fa;
+    padding: 0 22px;
+    position: relative;
+}
+
+.gmail h3 {
+    font-size: 16px;
+    color: #111;
+    position: absolute;
+    top: -17px;
+    left: 0;
+}
+
+.lista-gmail {
+    padding-top: 47px;
+}
+
+.lista-gmail p {
+    font-size: 12px;
+    font-weight: bold;
+    margin-bottom: 17px;
+    color: #111;
+}
+
+/* BOTÃO */
+
+.lista-gmail button {
+    margin-left: 4px;
+    padding: 16px 8px;
+
+    border: none;
+    background-color: #dedfff;
+
+    color: #4d5eea;
+    font-size: 14px;
+    font-weight: bold;
+
+    cursor: pointer;
+}
+
+.lista-gmail button:hover {
+    background-color: #c9cbfa;
+}
+
+/* RESPONSIVIDADE */
+
+@media (max-width: 800px) {
+
+    body {
+        align-items: flex-start;
+    }
+
+    .container {
+        width: 100%;
+        height: auto;
+        min-height: 100vh;
+    }
+
+    .menu {
+        width: 75px;
+        min-width: 75px;
+    }
+
+    .logo {
+        margin-left: 10px;
+    }
+
+    .logo img {
+        width: 50px;
+    }
+
+    .logo h2,
+    .logo p {
+        display: none;
+    }
+
+    nav a {
+        justify-content: center;
+        padding: 0;
+    }
+
+    nav a.selecionado {
+        padding: 0;
+    }
+
+    nav a img {
+        width: 20px;
+        height: 20px;
+    }
+
+    nav a {
+        font-size: 0;
+    }
+
+    .sair {
+        left: 25px;
+    }
+
+    .sair {
+        font-size: 0;
+    }
+
+    .conteudo {
+        width: calc(100% - 75px);
+    }
+
+    .usuario {
+        padding-left: 15px;
+    }
+
+    .dados {
+        height: auto;
+        min-height: 285px;
+        grid-template-columns: repeat(2, 1fr);
+        padding: 20px 5px;
+        gap: 25px 5px;
+    }
+
+    .campo input {
+        width: 125px;
+    }
+
+    .gmail {
+        min-height: 190px;
+    }
+}

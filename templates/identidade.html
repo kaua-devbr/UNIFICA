@@ -1,0 +1,17 @@
+<!doctype html><html lang="pt-BR"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>{{ titulo }} | UNIFICA</title><link rel="stylesheet" href="/static/css/acesso.css">
+<main><img src="/static/img/Logo.png" alt="UNIFICA" width="72">
+<h1>{{ titulo }}</h1>{% if erro %}<p role="alert">{{ erro }}</p>{% endif %}
+<form method="post"><input type="hidden" name="csrf" value="{{ session.csrf }}">
+{% if modo == 'login' %}
+<input type="hidden" name="destino" value="{{ destino }}">
+<label>Matrícula<input name="matricula" required maxlength="60" autocomplete="username"></label>
+<label>Senha<input name="senha" type="password" required autocomplete="current-password"></label>
+<label><input type="checkbox" name="lembrar"> Lembrar de mim por 7 dias</label>
+<button>Entrar</button>
+{% elif modo == 'senha' %}
+<label>Senha atual<input type="password" name="atual" required autocomplete="current-password"></label>
+<label>Nova senha<input type="password" name="nova" required minlength="8" maxlength="256" autocomplete="new-password"></label>
+<button>Salvar nova senha</button>
+{% else %}<button>Sair de todos os serviços</button>{% endif %}
+</form>{% if modo != 'login' %}<p><a href="/inicio">Voltar ao portal</a></p>{% endif %}</main></html>
