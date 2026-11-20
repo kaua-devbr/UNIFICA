@@ -30,9 +30,11 @@ Cada banco tem suas próprias contas. A versão reconstruída inicia um cadastro
 
 ## Organização
 
-- `app.py` monta os serviços, prepara o banco e inicia o servidor.
+- `app.py` reúne as rotas do Portal, o cadastro de alunos e a inicialização dos serviços. Por exemplo, a rota /perfil chama perfil() e exibe templates/perfil.html.
 - `auth/` contém a autenticação centralizada, a troca de senha e o gateway.
 - `database/` contém as operações SQL.
-- `portal/`, `templates/` e `static/` mantêm as páginas e o visual do portal.
+- `templates/` guarda as páginas HTML e `static/` reúne CSS e imagens.
+- `dados_demo.py` contém os exemplos de notas, eventos e comunicados.
+- `requirements.txt` lista as versões incluídas em `vendor/`.
 - `tests/test_sso.py` verifica cadastro, acesso aos dois serviços, autorização, persistência, troca de senha e saída. Rode `python tests/test_sso.py` com o SQLite padrão. Para testar com MySQL, use exclusivamente um banco de teste vazio.
 
