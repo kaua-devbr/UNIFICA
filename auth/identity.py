@@ -5,6 +5,7 @@ from urllib.parse import urlsplit
 from flask import abort, redirect, render_template, request, session
 from werkzeug.security import check_password_hash, generate_password_hash
 from auth.gateway import digest
+from database.gestao import perfil
 
 
 def destination(value):
@@ -36,7 +37,7 @@ def configure_identity(app, store):
         error = None
         if request.method == "POST":
             account = store.account(request.form.get("matricula", "").strip().lower())
-            if account and check_password_hash(account["senha"], request.form.get("senha", "")):
+            if account and perfil(store, account["matricula"]).get("ativo",1) and check_password_hash(account["senha"], request.form.get("senha", "")):
                 revoke()
                 token = secrets.token_urlsafe(32)
                 remember = bool(request.form.get("lembrar"))
@@ -44,6 +45,8 @@ def configure_identity(app, store):
                 store.query("DELETE FROM unifica_sessoes WHERE expira<=?", (now,))
                 store.query("INSERT INTO unifica_sessoes (token,matricula,expira) VALUES (?,?,?)",
                             (digest(token), account["matricula"], now + (604800 if remember else 28800)))
+                store.query("""INSERT INTO unifica_atividade(momento,acao,tipo,matricula)
+                               VALUES(NOW(),'Login',?,?)""",(account["papel"],account["matricula"]))
                 session.update(token=token, csrf=secrets.token_urlsafe())
                 session.permanent = remember
                 return redirect(dest, 303)
@@ -72,12 +75,13 @@ def configure_identity(app, store):
             if check_password_hash(account["senha"], request.form.get("atual", "")) and 8 <= len(new) <= 256:
                 with store.connection() as conn:
                     cur = conn.cursor()
-                    marker = "%s" if store.mysql else "?"
-                    cur.execute(f"UPDATE unifica_contas SET senha={marker} WHERE matricula={marker} AND senha={marker}",
+                    cur.execute("UPDATE unifica_contas SET senha=%s WHERE matricula=%s AND senha=%s",
                                 (generate_password_hash(new), account["matricula"], account["senha"]))
                     if cur.rowcount != 1:
                         abort(409)
-                    cur.execute(f"DELETE FROM unifica_sessoes WHERE matricula={marker}", (account["matricula"],))
+                    cur.execute("""INSERT INTO unifica_perfis(matricula,senha_em) VALUES (%s,NOW())
+                                   ON DUPLICATE KEY UPDATE senha_em=NOW()""",(account["matricula"],))
+                    cur.execute("DELETE FROM unifica_sessoes WHERE matricula=%s", (account["matricula"],))
                 session.clear()
                 return redirect("/sso/login", 303)
             error = "Confira a senha atual e use de 8 a 256 caracteres na nova."

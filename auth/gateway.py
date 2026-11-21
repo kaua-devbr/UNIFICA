@@ -25,7 +25,8 @@ class Gateway:
             token = session.get("token")
             rows = self.store.query("""SELECT c.matricula,c.nome,c.email,c.turma,c.papel
                 FROM unifica_sessoes s JOIN unifica_contas c ON c.matricula=s.matricula
-                WHERE s.token=? AND s.expira>?""", (digest(token), int(time.time())), rows=True) if token else []
+                LEFT JOIN unifica_perfis p ON p.matricula=c.matricula
+                WHERE s.token=? AND s.expira>? AND COALESCE(p.ativo,1)=1""", (digest(token), int(time.time())), rows=True) if token else []
             if not rows:
                 from urllib.parse import urlencode
                 dest = request.full_path.rstrip("?") if request.method == "GET" else "/"

@@ -1,52 +1,60 @@
+from werkzeug.security import generate_password_hash
+from database.store import conectar
 
 
-
-def criar_aluno(banco, matricula, nome, email, turma, senha):
-
-    banco.create(matricula, nome, email, turma, "aluno", senha)
-
-
-def listar_alunos(banco):
-    return banco.query(
-        "SELECT matricula, nome, email, turma FROM unifica_contas "
-        "WHERE papel = 'aluno' ORDER BY nome, matricula",
-        rows=True,
-    )
+def cadastrar_aluno(matricula, nome, email, turma, senha):
+    conexao = conectar()
+    cursor = conexao.cursor()
+    cadastro = "INSERT INTO unifica_contas (matricula, nome, email, turma, papel, senha) VALUES (%s, %s, %s, %s, %s, %s)"
+    valores = (matricula, nome, email, turma, "aluno", generate_password_hash(senha))
+    cursor.execute(cadastro, valores)
+    conexao.commit()
+    cursor.close()
+    conexao.close()
 
 
-def buscar_aluno(banco, matricula):
-    linhas = banco.query(
-        "SELECT matricula, nome, email, turma FROM unifica_contas "
-        "WHERE papel = 'aluno' AND matricula = ?", (matricula,), rows=True,
-    )
-    return linhas[0] if linhas else None
+def listar_alunos():
+    conexao = conectar()
+    cursor = conexao.cursor()
+    consultar = "SELECT matricula, nome, email, turma FROM unifica_contas WHERE papel = %s ORDER BY nome"
+    cursor.execute(consultar, ("aluno",))
+    alunos = cursor.fetchall()
+    cursor.close()
+    conexao.close()
+    return alunos
 
 
-def atualizar_aluno(banco, matricula, nome, email, turma):
-    alteradas = banco.query(
-        "UPDATE unifica_contas SET nome = ?, email = ?, turma = ? "
-        "WHERE papel = 'aluno' AND matricula = ?", (nome, email, turma, matricula),
-    )
+def buscar_aluno(matricula):
+    conexao = conectar()
+    cursor = conexao.cursor()
+    consultar = "SELECT matricula, nome, email, turma FROM unifica_contas WHERE matricula = %s AND papel = %s"
+    cursor.execute(consultar, (matricula, "aluno"))
+    aluno = cursor.fetchone()
+    cursor.close()
+    conexao.close()
+    return aluno
 
-    return bool(alteradas) or buscar_aluno(banco, matricula) is not None
+
+def atualizar_aluno(matricula, nome, email, turma):
+    conexao = conectar()
+    cursor = conexao.cursor()
+    atualizar = "UPDATE unifica_contas SET nome = %s, email = %s, turma = %s WHERE matricula = %s AND papel = %s"
+    valores = (nome, email, turma, matricula, "aluno")
+    cursor.execute(atualizar, valores)
+    conexao.commit()
+    cursor.close()
+    conexao.close()
 
 
-def excluir_aluno(banco, matricula):
-    
-    parametro = "%s" if banco.mysql else "?"
-    with banco.connection() as conexao:
-        cursor = conexao.cursor()
-        try:
-            if not banco.mysql:
-                cursor.execute("BEGIN IMMEDIATE")
-            consulta = f"SELECT matricula FROM unifica_contas WHERE papel = 'aluno' AND matricula = {parametro}"
-            if banco.mysql:
-                consulta += " FOR UPDATE"
-            cursor.execute(consulta, (matricula,))
-            if cursor.fetchone() is None:
-                return False
-            cursor.execute(f"DELETE FROM unifica_sessoes WHERE matricula = {parametro}", (matricula,))
-            cursor.execute(f"DELETE FROM unifica_contas WHERE papel = 'aluno' AND matricula = {parametro}", (matricula,))
-            return cursor.rowcount == 1
-        finally:
-            cursor.close()
+def deletar_aluno(matricula):
+    conexao = conectar()
+    cursor = conexao.cursor()
+    # só mexe em contas de aluno (nunca no administrador)
+    cursor.execute("SELECT matricula FROM unifica_contas WHERE matricula = %s AND papel = %s", (matricula, "aluno"))
+    if cursor.fetchone() is not None:
+        # a tabela de sessões depende da conta, então apaga ela primeiro
+        cursor.execute("DELETE FROM unifica_sessoes WHERE matricula = %s", (matricula,))
+        cursor.execute("DELETE FROM unifica_contas WHERE matricula = %s AND papel = %s", (matricula, "aluno"))
+        conexao.commit()
+    cursor.close()
+    conexao.close()

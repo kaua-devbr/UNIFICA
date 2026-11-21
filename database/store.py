@@ -1,30 +1,27 @@
 import os
-import sqlite3
 from contextlib import contextmanager
+
+import mysql.connector
+
+
+def conectar():
+    """Abre uma conexão com o MySQL. O crud.py e o resto do projeto usam esta mesma função."""
+    return mysql.connector.connect(
+        host=os.getenv("MYSQL_HOST", "localhost"),
+        port=int(os.getenv("MYSQL_PORT", "3306")),
+        user=os.environ["MYSQL_USER"],
+        password=os.environ["MYSQL_PASSWORD"],
+        database=os.getenv("MYSQL_DATABASE", "UNIFICA"),
+        use_pure=True,
+        charset="utf8mb4",
+        connection_timeout=5,
+    )
 
 
 class Store:
-    def __init__(self, folder):
-        self.file = folder / "unifica.sqlite3"
-        self.mysql = os.getenv("UNIFICA_DB", "sqlite").lower()
-        if self.mysql not in {"mysql", "sqlite"}:
-            raise ValueError("UNIFICA_DB deve ser mysql ou sqlite.")
-        self.mysql = self.mysql == "mysql"
-
     @contextmanager
     def connection(self):
-        if self.mysql:
-            import mysql.connector
-            conn = mysql.connector.connect(
-                host=os.getenv("MYSQL_HOST", "localhost"),
-                port=int(os.getenv("MYSQL_PORT", "3306")),
-                user=os.environ["MYSQL_USER"], password=os.environ["MYSQL_PASSWORD"],
-                database=os.getenv("MYSQL_DATABASE", "UNIFICA"), use_pure=True,
-                charset="utf8mb4", connection_timeout=5)
-        else:
-            conn = sqlite3.connect(self.file, timeout=10)
-            conn.row_factory = sqlite3.Row
-            conn.execute("PRAGMA foreign_keys=ON")
+        conn = conectar()
         try:
             yield conn
             conn.commit()
@@ -36,9 +33,9 @@ class Store:
 
     def query(self, sql, params=(), *, rows=False):
         with self.connection() as conn:
-            cur = conn.cursor(dictionary=True) if self.mysql else conn.cursor()
+            cur = conn.cursor(dictionary=True)
             try:
-                cur.execute(sql.replace("?", "%s") if self.mysql else sql, params)
+                cur.execute(sql.replace("?", "%s"), params)
                 if rows:
                     return [dict(row) for row in cur.fetchall()]
                 return cur.rowcount
@@ -63,4 +60,3 @@ class Store:
         from werkzeug.security import generate_password_hash
         self.query("INSERT INTO unifica_contas (matricula,nome,email,turma,papel,senha) VALUES (?,?,?,?,?,?)",
                    (matricula, nome, email, turma, papel, generate_password_hash(password)))
-

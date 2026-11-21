@@ -4,7 +4,7 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='css/notas.css') }}">
 {% endblock %}
 {% block conteudo %}
-<p>Boletim ilustrativo para demonstração do TCC.</p>
+{% if not reais %}<p>Boletim ilustrativo para demonstração do TCC.</p>{% endif %}
 <section class="boletim" aria-labelledby="boletim-titulo">
     <div class="boletim-resumo">
         <article>
@@ -18,8 +18,8 @@
             <small>{{ aulas - faltas }} de {{ aulas }} aulas</small>
         </article>
     </div>
-    <h1 id="boletim-titulo"><img src="{{ url_for('static', filename='img/Gráfico.png') }}" alt="">Notas e Frequência</h1>
-    <p class="boletim-legenda">Boletim de demonstração · Média mínima do exemplo: 6,0.</p>
+    <h1 id="boletim-titulo"><img src="{{ url_for('static', filename='img/Gr#U00e1fico.png') }}" alt="">Notas e Frequência</h1>
+    {% if not reais %}<p class="boletim-legenda">Boletim de demonstração · Média mínima do exemplo: 6,0.</p>{% endif %}
     <div class="boletim-tabelas">
         {% for grupo in disciplinas | batch((disciplinas | length + 1) // 2) %}
         <table aria-label="Notas e faltas, parte {{ loop.index }}">

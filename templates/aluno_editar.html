@@ -1,0 +1,9 @@
+{% extends 'base.html' %}{% block titulo %}Editar aluno{% endblock %}{% block conteudo %}
+<h1>Editar aluno</h1>{% if erro %}<p role="alert">{{ erro }}</p>{% endif %}
+<p>Matrícula: <strong>{{ aluno[0] }}</strong></p>
+<form method="post" class="painel preferencias"><input type="hidden" name="form_token" value="{{ session.form_token }}">
+<label>Nome completo<input required name="nome" type="text" maxlength="150" value="{{ aluno[1] }}"></label>
+<label>E-mail<input required name="email" type="email" maxlength="254" value="{{ aluno[2] }}"></label>
+<label>Turma<input required name="turma" type="text" maxlength="80" value="{{ aluno[3] }}"></label>
+<button class="botao principal">Salvar alterações</button></form>
+<p><a href="{{ url_for('portal.alunos') }}">Voltar para a lista</a></p>{% endblock %}
