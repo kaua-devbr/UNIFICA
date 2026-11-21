@@ -1,4 +1,4 @@
-"""Dados acadêmicos adicionais. A matrícula continua vinculada à conta original."""
+
 SCHEMA = (
     """CREATE TABLE IF NOT EXISTS unifica_perfis (
         matricula VARCHAR(60) PRIMARY KEY, ativo BOOLEAN NOT NULL DEFAULT TRUE,
