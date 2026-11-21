@@ -1,58 +1,409 @@
 <!doctype html>
-<html lang="pt-BR" data-tema="{{ personal.tema|default('claro') }}" data-fonte="{{ personal.fonte|default('normal') }}">
-{% set titles={'visao':'Visão geral','inicio':'Início','notas':'Notas e Frequência','calendario':'Calendário','comunicados':'Comunicados','perfil':'Perfil','configuracoes':'Configurações','usuarios':'Usuários','administradores':'Administradores','turmas':'Turmas','professores':'Professores'} %}
-{% set account=request.environ['unifica.account'] %}
-{% set students=accounts|selectattr('papel','equalto','aluno')|list %}
-{% set pending=notices|selectattr('status','equalto','Rascunho')|list %}
-{% macro open(kind,label) %}<button type="button" data-new="{{ kind }}">{{ label }}</button>{% endmacro %}
-{% macro csrf() %}<input type="hidden" name="form_token" value="{{ session.form_token }}"><input type="hidden" name="pagina" value="{{ page }}">{% endmacro %}
-<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>{{ titles[page] }} · UNIFICA</title><link rel="stylesheet" href="{{ url_for('static',filename='gestao.css') }}"></head>
-<body><aside><a class="brand" href="visao"><img src="/static/img/Logo.png" alt=""><strong>UNIFICA</strong><small>Ambiente acadêmico</small></a>
-<nav aria-label="Menu administrativo">{% for p,icon in [('visao','▦'),('inicio','⌂'),('notas','▥'),('calendario','▦'),('comunicados','✉'),('perfil','◎'),('configuracoes','⚙')] %}
-<a href="{{ p }}" {% if p==page or (p=='inicio' and page in ['usuarios','administradores','professores','turmas']) %}aria-current="page"{% endif %}><b aria-hidden="true">{{ icon }}</b>{{ titles[p] }}</a>{% endfor %}</nav>
-<form method="post" action="/sair">{{ csrf() }}<button class="logout">↪ &nbsp; Sair da conta</button></form></aside>
-<main><header class="bar"><a href="comunicados" aria-label="Abrir comunicados">✉</a><a href="perfil"><i>{{ account.nome[:1] }}</i> Administrador</a></header>
-<div class="content">
-{% if page=='visao' %}
-<header class="welcome"><h1>Olá, Administrador!</h1><p>Gerencie o portal e acompanhe as atividades acadêmicas.</p></header>
-<section class="stats">{% for n,t,p in [(students|length,'Total de alunos','inicio'),(groups|length,'Turmas ativas','turmas'),(pending|length,'Comunicados pendentes','comunicados'),(notices|length,'Comunicados','comunicados')] %}<a href="{{ p }}"><strong>{{ n }}</strong>{{ t }}</a>{% endfor %}</section>
-<div class="columns"><section class="card"><h2>Estatísticas do portal</h2><p class="legend">● Acessos &nbsp; <span>● Alunos ativos</span></p>
-{% set peak=([1]+series|map(attribute='acessos')|list)|max %}
-<svg viewBox="0 0 320 112" role="img" aria-label="Acessos e alunos ativos nos últimos sete dias"><path d="M10 10H310 M10 52H310 M10 94H310" fill="none" stroke="#dee4f2"/>
-{% for key,color in [('acessos','#376ce8'),('alunos','#8255d3')] %}<polyline fill="none" stroke="{{ color }}" stroke-width="2.5" points="{% for r in series %}{{ 10+loop.index0*50 }},{{ 94-r[key]*80/peak }} {% endfor %}"/>{% endfor %}</svg>
-<div class="axis">{% for r in series %}<span title="{{ r.acessos }} acessos, {{ r.alunos }} alunos">{{ r.dia }}</span>{% endfor %}</div></section>
-<section class="card"><h2>Próximos eventos</h2>{% for e in (events|selectattr('dia','ge',today)|list)[:3] %}<a class="entry" href="calendario?dia={{ e.dia }}"><b>{{ e.dia[8:] }}/{{ e.dia[5:7] }}</b>{{ e.titulo }}</a>{% else %}<p>Nenhum evento agendado.</p>{% endfor %}</section>
-<section class="card"><h2>Comunicados recentes</h2>{% for n in notices[:3] %}<a class="entry" href="comunicados"><strong>{{ n.titulo }}</strong>{{ n.conteudo|truncate(70) }}</a>{% else %}<p>Nenhum comunicado cadastrado.</p>{% endfor %}</section>
-<section class="card"><h2>Ações rápidas</h2><div class="tiles">{{ open('aluno','＋ Cadastrar aluno') }}{{ open('nota','▤ Registrar notas') }}{{ open('evento','▦ Criar evento') }}{{ open('comunicado','✉ Publicar comunicado') }}</div></section></div>
-{% elif page in ['inicio','usuarios','administradores','professores','turmas'] %}
-{% if page=='inicio' %}<section class="stats vivid">{% for n,t in [(students|length,'Total de alunos'),(accounts|selectattr('ativo')|list|length,'Usuários ativos'),(pending|length,'Comunicados pendentes'),(groups|length,'Turmas ativas')] %}<div><strong>{{ n }}</strong>{{ t }}</div>{% endfor %}</section>{% endif %}
-<div class="{{ 'split' if page=='inicio' else '' }}"><section class="card"><div class="heading"><h1>{{ 'Lista de alunos' if page=='inicio' else titles[page] }}</h1>{% if page!='inicio' %}{{ open({'usuarios':'conta','administradores':'administrador','turmas':'turma','professores':'professor'}[page],'＋ Cadastrar') }}{% endif %}</div>
-<label class="search">Pesquisar<input id="search" type="search" placeholder="Nome ou matrícula"></label><div id="results"></div></section>
-{% if page=='inicio' %}<div><section class="card"><h2>Ações rápidas</h2><div class="tiles bright">{{ open('aluno','Cadastrar aluno') }}{% for p,t in [('usuarios','Gerenciar usuários'),('administradores','Gerenciar administradores'),('turmas','Gerenciar turmas'),('professores','Gerenciar professores'),('configuracoes','Configurações')] %}<a href="{{ p }}">{{ t }}</a>{% endfor %}</div></section>
-<section class="card"><h2>Últimas ações</h2>{% for a in actions %}<p class="action">{{ a.acao }}</p>{% else %}<p>Nenhuma ação registrada.</p>{% endfor %}</section></div>{% endif %}</div>
-{% elif page=='notas' %}
-<div class="heading"><div><h1>Notas e Frequência</h1><p>Consulte os registros acadêmicos dos alunos.</p></div>{{ open('nota','＋ Registrar nota') }}</div>
-<form class="card filters" id="filters"><label>Aluno<input id="search" type="search" placeholder="Nome ou matrícula"></label><label>Turma<select id="class"><option value="">Todas as turmas</option>{% for g in groups %}<option>{{ g.nome }}</option>{% endfor %}</select></label>
-<label>Disciplina<select id="subject"><option value="">Todas</option>{% for s in grades|map(attribute='disciplina')|unique %}<option>{{ s }}</option>{% endfor %}</select></label>
-<label>Período<select id="period"><option value="">Todos</option>{% for n in range(1,5) %}<option value="{{ n }}">{{ n }}º bimestre</option>{% endfor %}</select></label><button>Buscar</button></form>
-<div class="card" id="summary"></div><div class="tabs"><button data-tab="nota" aria-pressed="true">Notas</button><button data-tab="freq" aria-pressed="false">Frequência</button></div><div class="card" id="results"></div>
-{% elif page=='calendario' %}
-<div class="heading"><h1>Calendário</h1>{{ open('evento','＋ Novo evento') }}</div><div class="columns"><section class="card">
-<div class="heading"><a class="arrow" aria-label="Mês anterior" href="?dia={{ previous }}">‹</a><h2>{{ month|capitalize }} de {{ day.year }}</h2><a class="arrow" aria-label="Próximo mês" href="?dia={{ following }}">›</a></div>
-<div class="calendar">{% for d in ['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'] %}<b>{{ d }}</b>{% endfor %}
-{% for w in weeks %}{% for d in w %}{% if d.month==day.month %}<a href="?dia={{ d }}" {% if d==day %}aria-current="date"{% endif %}>{{ d.day }}{% if d.isoformat() in events|map(attribute='dia') %}<small>●</small>{% endif %}</a>{% else %}<span></span>{% endif %}{% endfor %}{% endfor %}</div></section>
-<section class="card"><h2>Eventos de {{ day.strftime('%d/%m/%Y') }}</h2>{% for e in events if e.dia==day.isoformat() %}<article class="event"><strong>{{ e.inicio }} – {{ e.fim }}</strong><h3>{{ e.titulo }}</h3><p>{{ e.descricao }}</p><button data-edit="evento" data-id="{{ e.id }}">Editar</button> <button class="danger" data-delete="evento" data-id="{{ e.id }}">Excluir</button></article>{% else %}<p>Sem eventos neste dia.</p>{% endfor %}</section></div>
-{% elif page=='comunicados' %}
-<div class="heading"><div><h1>Comunicados</h1><p>Gerencie as publicações do ambiente acadêmico.</p></div>{{ open('comunicado','＋ Novo comunicado') }}</div>
-<div class="filters card"><label>Pesquisar<input id="search" type="search" placeholder="Título ou conteúdo"></label><label>Status<select id="status"><option value="">Todos</option><option>Publicado</option><option>Rascunho</option></select></label></div><div class="card" id="results"></div>
-{% elif page=='perfil' %}<div class="heading"><h1>Perfil de administrador</h1><button form="profile">Salvar alterações</button></div><div class="columns"><form id="profile" class="card" method="post" action="alterar/perfil">{{ csrf() }}<h2><i>{{ account.nome[:1] }}</i> {{ account.nome }}</h2><div class="formgrid">
-{% for k,t,l in [('nome','Nome completo',150),('email','E-mail institucional',254),('cargo','Cargo',100),('escola','Escola',150),('departamento','Departamento',100),('telefone','Telefone',40)] %}<label>{{ t }}<input name="{{ k }}" maxlength="{{ l }}" type="{{ 'email' if k=='email' else 'text' }}" value="{{ account.get(k,personal.get(k,'')) }}" {% if k in ['nome','email'] %}required{% endif %}></label>{% endfor %}</div></form>
-<section class="card"><h2>Permissões e acessos</h2>{% for p,t in [('calendario','Gestão de calendário'),('usuarios','Gestão de usuários'),('turmas','Gestão de turmas'),('relatorios/notas.csv','Emissão de relatórios (CSV)')] %}<a class="entry" href="{{ p }}">{{ t }} →</a>{% endfor %}</section></div>
-{% else %}<h1>Configurações</h1><section class="card settings"><h2>Segurança da conta</h2><button data-password>Alterar senha</button><p>Última alteração: {{ personal.senha_em.strftime('%d/%m/%Y') if personal.senha_em else 'sem registro' }}</p></section>
-<form class="card settings" method="post" action="alterar/preferencias">{{ csrf() }}<h2>Estilo de página</h2>{% for k,t,opts in [('tema','Tema',[('claro','Branco'),('escuro','Escuro')]),('fonte','Fonte',[('normal','Normal'),('grande','Grande')])] %}<label>{{ t }}<select name="{{ k }}">{% for v,label in opts %}<option value="{{ v }}" {% if personal.get(k)==v %}selected{% endif %}>{{ label }}</option>{% endfor %}</select></label>{% endfor %}<button>Salvar preferências</button></form>
-{% endif %}</div></main>
-<dialog id="modal" aria-labelledby="modal-title"><header class="heading"><h2 id="modal-title"></h2><button class="quiet" type="button" data-close aria-label="Fechar">×</button></header><div id="modal-body"></div></dialog>
-<script type="application/json" id="data">{{ dict(page=page,accounts=accounts,groups=groups,events=events,notices=notices,grades=grades,csrf=session.form_token,now=now,day=day.isoformat(),messages=get_flashed_messages(with_categories=true))|tojson }}</script>
-<script src="{{ url_for('static',filename='gestao.js') }}" defer></script></body></html>
-
+<html
+  lang="pt-BR"
+  data-tema="{{ personal.tema|default('claro') }}"
+  data-fonte="{{ personal.fonte|default('normal') }}"
+>
+  {% set titles={'visao':'Visão geral','inicio':'Início','notas':'Notas e
+  Frequência','calendario':'Calendário','comunicados':'Comunicados','perfil':'Perfil','configuracoes':'Configurações','usuarios':'Usuários','administradores':'Administradores','turmas':'Turmas','professores':'Professores'}
+  %} {% set account=request.environ['unifica.account'] %} {% set
+  students=accounts|selectattr('papel','equalto','aluno')|list %} {% set
+  pending=notices|selectattr('status','equalto','Rascunho')|list %} {% macro
+  open(kind,label) %}<button type="button" data-new="{{ kind }}">
+    {{ label }}</button
+  >{% endmacro %} {% macro csrf() %}<input
+    type="hidden"
+    name="form_token"
+    value="{{ session.form_token }}"
+  /><input type="hidden" name="pagina" value="{{ page }}" />{% endmacro %}
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>{{ titles[page] }} · UNIFICA</title>
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static',filename='gestao.css') }}"
+    />
+  </head>
+  <body>
+    <aside>
+      <a class="brand" href="visao"
+        ><img src="/static/img/Logo.png" alt="" /><strong>UNIFICA</strong
+        ><small>Ambiente acadêmico</small></a
+      >
+      <nav aria-label="Menu administrativo">
+        {% for p,icon in
+        [('visao','▦'),('inicio','⌂'),('notas','▥'),('calendario','▦'),('comunicados','✉'),('perfil','◎'),('configuracoes','⚙')]
+        %}
+        <a
+          href="{{ p }}"
+          {%
+          if
+          p=""
+          ="page"
+          or
+          (p=""
+          ="inicio"
+          and
+          page
+          in
+          ['usuarios','administradores','professores','turmas'])
+          %}aria-current="page"
+          {%
+          endif
+          %}
+          ><b aria-hidden="true">{{ icon }}</b>{{ titles[p] }}</a
+        >{% endfor %}
+      </nav>
+      <form method="post" action="/sair">
+        {{ csrf() }}<button class="logout">↪ &nbsp; Sair da conta</button>
+      </form>
+    </aside>
+    <main>
+      <header class="bar">
+        <a href="comunicados" aria-label="Abrir comunicados">✉</a
+        ><a href="perfil"><i>{{ account.nome[:1] }}</i> Administrador</a>
+      </header>
+      <div class="content">
+        {% if page=='visao' %}
+        <header class="welcome">
+          <h1>Olá, Administrador!</h1>
+          <p>Gerencie o portal e acompanhe as atividades acadêmicas.</p>
+        </header>
+        <section class="stats">
+          {% for n,t,p in [(students|length,'Total de
+          alunos','inicio'),(groups|length,'Turmas
+          ativas','turmas'),(pending|length,'Comunicados
+          pendentes','comunicados'),(notices|length,'Comunicados','comunicados')]
+          %}<a href="{{ p }}"><strong>{{ n }}</strong>{{ t }}</a>{% endfor %}
+        </section>
+        <div class="columns">
+          <section class="card">
+            <h2>Estatísticas do portal</h2>
+            <p class="legend">● Acessos &nbsp; <span>● Alunos ativos</span></p>
+            {% set peak=([1]+series|map(attribute='acessos')|list)|max %}
+            <svg
+              viewBox="0 0 320 112"
+              role="img"
+              aria-label="Acessos e alunos ativos nos últimos sete dias"
+            >
+              <path
+                d="M10 10H310 M10 52H310 M10 94H310"
+                fill="none"
+                stroke="#dee4f2"
+              />
+              {% for key,color in [('acessos','#376ce8'),('alunos','#8255d3')]
+              %}
+              <polyline
+                fill="none"
+                stroke="{{ color }}"
+                stroke-width="2.5"
+                points="{% for r in series %}{{ 10+loop.index0*50 }},{{ 94-r[key]*80/peak }} {% endfor %}"
+              />
+              {% endfor %}
+            </svg>
+            <div class="axis">
+              {% for r in series %}<span
+                title="{{ r.acessos }} acessos, {{ r.alunos }} alunos"
+                >{{ r.dia }}</span
+              >{% endfor %}
+            </div>
+          </section>
+          <section class="card">
+            <h2>Próximos eventos</h2>
+            {% for e in (events|selectattr('dia','ge',today)|list)[:3] %}<a
+              class="entry"
+              href="calendario?dia={{ e.dia }}"
+              ><b>{{ e.dia[8:] }}/{{ e.dia[5:7] }}</b>{{ e.titulo }}</a
+            >{% else %}
+            <p>Nenhum evento agendado.</p>
+            {% endfor %}
+          </section>
+          <section class="card">
+            <h2>Comunicados recentes</h2>
+            {% for n in notices[:3] %}<a class="entry" href="comunicados"
+              ><strong>{{ n.titulo }}</strong>{{ n.conteudo|truncate(70) }}</a
+            >{% else %}
+            <p>Nenhum comunicado cadastrado.</p>
+            {% endfor %}
+          </section>
+          <section class="card">
+            <h2>Ações rápidas</h2>
+            <div class="tiles">
+              {{ open('aluno','＋ Cadastrar aluno') }}{{ open('nota','▤
+              Registrar notas') }}{{ open('evento','▦ Criar evento') }}{{
+              open('comunicado','✉ Publicar comunicado') }}
+            </div>
+          </section>
+        </div>
+        {% elif page in
+        ['inicio','usuarios','administradores','professores','turmas'] %} {% if
+        page=='inicio' %}
+        <section class="stats vivid">
+          {% for n,t in [(students|length,'Total de
+          alunos'),(accounts|selectattr('ativo')|list|length,'Usuários
+          ativos'),(pending|length,'Comunicados
+          pendentes'),(groups|length,'Turmas ativas')] %}
+          <div><strong>{{ n }}</strong>{{ t }}</div>
+          {% endfor %}
+        </section>
+        {% endif %}
+        <div class="{{ 'split' if page=='inicio' else '' }}">
+          <section class="card">
+            <div class="heading">
+              <h1>
+                {{ 'Lista de alunos' if page=='inicio' else titles[page] }}
+              </h1>
+              {% if page!='inicio' %}{{
+              open({'usuarios':'conta','administradores':'administrador','turmas':'turma','professores':'professor'}[page],'＋
+              Cadastrar') }}{% endif %}
+            </div>
+            <label class="search"
+              >Pesquisar<input
+                id="search"
+                type="search"
+                placeholder="Nome ou matrícula"
+            /></label>
+            <div id="results"></div>
+          </section>
+          {% if page=='inicio' %}
+          <div>
+            <section class="card">
+              <h2>Ações rápidas</h2>
+              <div class="tiles bright">
+                {{ open('aluno','Cadastrar aluno') }}{% for p,t in
+                [('usuarios','Gerenciar usuários'),('administradores','Gerenciar
+                administradores'),('turmas','Gerenciar
+                turmas'),('professores','Gerenciar
+                professores'),('configuracoes','Configurações')] %}<a
+                  href="{{ p }}"
+                  >{{ t }}</a
+                >{% endfor %}
+              </div>
+            </section>
+            <section class="card">
+              <h2>Últimas ações</h2>
+              {% for a in actions %}
+              <p class="action">{{ a.acao }}</p>
+              {% else %}
+              <p>Nenhuma ação registrada.</p>
+              {% endfor %}
+            </section>
+          </div>
+          {% endif %}
+        </div>
+        {% elif page=='notas' %}
+        <div class="heading">
+          <div>
+            <h1>Notas e Frequência</h1>
+            <p>Consulte os registros acadêmicos dos alunos.</p>
+          </div>
+          {{ open('nota','＋ Registrar nota') }}
+        </div>
+        <form class="card filters" id="filters">
+          <label
+            >Aluno<input
+              id="search"
+              type="search"
+              placeholder="Nome ou matrícula" /></label
+          ><label
+            >Turma<select id="class">
+              <option value="">Todas as turmas</option>
+              {% for g in groups %}
+              <option>{{ g.nome }}</option>
+              {% endfor %}
+            </select></label
+          >
+          <label
+            >Disciplina<select id="subject">
+              <option value="">Todas</option>
+              {% for s in grades|map(attribute='disciplina')|unique %}
+              <option>{{ s }}</option>
+              {% endfor %}
+            </select></label
+          >
+          <label
+            >Período<select id="period">
+              <option value="">Todos</option>
+              {% for n in range(1,5) %}
+              <option value="{{ n }}">{{ n }}º bimestre</option>
+              {% endfor %}
+            </select></label
+          ><button>Buscar</button>
+        </form>
+        <div class="card" id="summary"></div>
+        <div class="tabs">
+          <button data-tab="nota" aria-pressed="true">Notas</button
+          ><button data-tab="freq" aria-pressed="false">Frequência</button>
+        </div>
+        <div class="card" id="results"></div>
+        {% elif page=='calendario' %}
+        <div class="heading">
+          <h1>Calendário</h1>
+          {{ open('evento','＋ Novo evento') }}
+        </div>
+        <div class="columns">
+          <section class="card">
+            <div class="heading">
+              <a
+                class="arrow"
+                aria-label="Mês anterior"
+                href="?dia={{ previous }}"
+                >‹</a
+              >
+              <h2>{{ month|capitalize }} de {{ day.year }}</h2>
+              <a
+                class="arrow"
+                aria-label="Próximo mês"
+                href="?dia={{ following }}"
+                >›</a
+              >
+            </div>
+            <div class="calendar">
+              {% for d in ['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'] %}<b
+                >{{ d }}</b
+              >{% endfor %} {% for w in weeks %}{% for d in w %}{% if
+              d.month==day.month %}<a
+                href="?dia={{ d }}"
+                {%
+                if
+                d=""
+                ="day"
+                %}aria-current="date"
+                {%
+                endif
+                %}
+                >{{ d.day }}{% if d.isoformat() in events|map(attribute='dia')
+                %}<small>●</small>{% endif %}</a
+              >{% else %}<span></span>{% endif %}{% endfor %}{% endfor %}
+            </div>
+          </section>
+          <section class="card">
+            <h2>Eventos de {{ day.strftime('%d/%m/%Y') }}</h2>
+            {% for e in events if e.dia==day.isoformat() %}
+            <article class="event">
+              <strong>{{ e.inicio }} – {{ e.fim }}</strong>
+              <h3>{{ e.titulo }}</h3>
+              <p>{{ e.descricao }}</p>
+              <button data-edit="evento" data-id="{{ e.id }}">Editar</button>
+              <button class="danger" data-delete="evento" data-id="{{ e.id }}">
+                Excluir
+              </button>
+            </article>
+            {% else %}
+            <p>Sem eventos neste dia.</p>
+            {% endfor %}
+          </section>
+        </div>
+        {% elif page=='comunicados' %}
+        <div class="heading">
+          <div>
+            <h1>Comunicados</h1>
+            <p>Gerencie as publicações do ambiente acadêmico.</p>
+          </div>
+          {{ open('comunicado','＋ Novo comunicado') }}
+        </div>
+        <div class="filters card">
+          <label
+            >Pesquisar<input
+              id="search"
+              type="search"
+              placeholder="Título ou conteúdo" /></label
+          ><label
+            >Status<select id="status">
+              <option value="">Todos</option>
+              <option>Publicado</option>
+              <option>Rascunho</option>
+            </select></label
+          >
+        </div>
+        <div class="card" id="results"></div>
+        {% elif page=='perfil' %}
+        <div class="heading">
+          <h1>Perfil de administrador</h1>
+          <button form="profile">Salvar alterações</button>
+        </div>
+        <div class="columns">
+          <form id="profile" class="card" method="post" action="alterar/perfil">
+            {{ csrf() }}
+            <h2><i>{{ account.nome[:1] }}</i> {{ account.nome }}</h2>
+            <div class="formgrid">
+              {% for k,t,l in [('nome','Nome completo',150),('email','E-mail
+              institucional',254),('cargo','Cargo',100),('escola','Escola',150),('departamento','Departamento',100),('telefone','Telefone',40)]
+              %}<label
+                >{{ t }}<input
+                  name="{{ k }}"
+                  maxlength="{{ l }}"
+                  type="{{ 'email' if k=='email' else 'text' }}"
+                  value="{{ account.get(k,personal.get(k,'')) }}"
+                  {%
+                  if
+                  k
+                  in
+                  ['nome','email']
+                  %}required{%
+                  endif
+                  %} /></label
+              >{% endfor %}
+            </div>
+          </form>
+          <section class="card">
+            <h2>Permissões e acessos</h2>
+            {% for p,t in [('calendario','Gestão de
+            calendário'),('usuarios','Gestão de usuários'),('turmas','Gestão de
+            turmas'),('relatorios/notas.csv','Emissão de relatórios (CSV)')]
+            %}<a class="entry" href="{{ p }}">{{ t }} →</a>{% endfor %}
+          </section>
+        </div>
+        {% else %}
+        <h1>Configurações</h1>
+        <section class="card settings">
+          <h2>Segurança da conta</h2>
+          <button data-password>Alterar senha</button>
+          <p>
+            Última alteração: {{ personal.senha_em.strftime('%d/%m/%Y') if
+            personal.senha_em else 'sem registro' }}
+          </p>
+        </section>
+        <form class="card settings" method="post" action="alterar/preferencias">
+          {{ csrf() }}
+          <h2>Estilo de página</h2>
+          {% for k,t,opts in
+          [('tema','Tema',[('claro','Branco'),('escuro','Escuro')]),('fonte','Fonte',[('normal','Normal'),('grande','Grande')])]
+          %}<label
+            >{{ t }}<select name="{{ k }}">
+              {% for v,label in opts %}
+              <option
+                value="{{ v }}"
+                {%
+                if
+                personal.get(k)=""
+                ="v"
+                %}selected{%
+                endif
+                %}
+              >
+                {{ label }}
+              </option>
+              {% endfor %}
+            </select></label
+          >{% endfor %}<button>Salvar preferências</button>
+        </form>
+        {% endif %}
+      </div>
+    </main>
+    <dialog id="modal" aria-labelledby="modal-title">
+      <header class="heading">
+        <h2 id="modal-title"></h2>
+        <button class="quiet" type="button" data-close aria-label="Fechar">
+          ×
+        </button>
+      </header>
+      <div id="modal-body"></div>
+    </dialog>
+    <script type="application/json" id="data">
+      {{ dict(page=page,accounts=accounts,groups=groups,events=events,notices=notices,grades=grades,csrf=session.form_token,now=now,day=day.isoformat(),messages=get_flashed_messages(with_categories=true))|tojson }}
+    </script>
+    <script src="{{ url_for('static',filename='gestao.js') }}" defer></script>
+  </body>
+</html>

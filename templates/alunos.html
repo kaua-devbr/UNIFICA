@@ -1,12 +1,63 @@
-{% extends 'base.html' %}{% block titulo %}Cadastro de alunos{% endblock %}{% block conteudo %}
-<h1>Cadastro de alunos</h1>{% if erro %}<p role="alert">{{ erro }}</p>{% elif request.args.get('cadastrado') %}<p role="status">Aluno cadastrado. A matrícula já permite acesso aos serviços.</p>{% elif request.args.get('editado') %}<p role="status">Dados do aluno atualizados.</p>{% elif request.args.get('excluido') %}<p role="status">Aluno excluído.</p>{% endif %}
-<form method="post" class="painel preferencias"><input type="hidden" name="form_token" value="{{ session.form_token }}">
-{% for campo, titulo, tipo, limite in [('matricula','Matrícula','text',60),('nome','Nome completo','text',150),('email','E-mail','email',254),('turma','Turma','text',80),('senha','Senha inicial','password',256)] %}
-<label>{{ titulo }}<input required name="{{ campo }}" type="{{ tipo }}" maxlength="{{ limite }}" {% if campo=='senha' %}minlength="8" autocomplete="new-password"{% endif %}></label>{% endfor %}
-<button class="botao principal">Cadastrar aluno</button></form>
+{% extends 'base.html' %}{% block titulo %}Cadastro de alunos{% endblock %}{%
+block conteudo %}
+<h1>Cadastro de alunos</h1>
+{% if erro %}
+<p role="alert">{{ erro }}</p>
+{% elif request.args.get('cadastrado') %}
+<p role="status">
+  Aluno cadastrado. A matrícula já permite acesso aos serviços.
+</p>
+{% elif request.args.get('editado') %}
+<p role="status">Dados do aluno atualizados.</p>
+{% elif request.args.get('excluido') %}
+<p role="status">Aluno excluído.</p>
+{% endif %}
+<form method="post" class="painel preferencias">
+  <input type="hidden" name="form_token" value="{{ session.form_token }}" />
+  {% for campo, titulo, tipo, limite in
+  [('matricula','Matrícula','text',60),('nome','Nome
+  completo','text',150),('email','E-mail','email',254),('turma','Turma','text',80),('senha','Senha
+  inicial','password',256)] %}
+  <label
+    >{{ titulo }}<input
+      required
+      name="{{ campo }}"
+      type="{{ tipo }}"
+      maxlength="{{ limite }}"
+      {%
+      if
+      campo=""
+      ="senha"
+      %}minlength="8"
+      autocomplete="new-password"
+      {%
+      endif
+      %} /></label
+  >{% endfor %} <button class="botao principal">Cadastrar aluno</button>
+</form>
 <h2>Alunos cadastrados</h2>
-<ul>{% for a in alunos %}
-<li>{{ a[1] }} · {{ a[0] }} · {{ a[3] }}
-<a class="botao" href="{{ url_for('portal.editar_aluno', matricula=a[0]) }}">Editar</a>
-<form method="post" action="{{ url_for('portal.excluir_aluno', matricula=a[0]) }}" style="display:inline" onsubmit="return confirm('Excluir o aluno {{ a[1] }}?')"><input type="hidden" name="form_token" value="{{ session.form_token }}"><button class="botao">Excluir</button></form></li>
-{% else %}<li>Nenhum aluno cadastrado.</li>{% endfor %}</ul>{% endblock %}
+<ul>
+  {% for a in alunos %}
+  <li>
+    {{ a[1] }} · {{ a[0] }} · {{ a[3] }}
+    <a class="botao" href="{{ url_for('portal.editar_aluno', matricula=a[0]) }}"
+      >Editar</a
+    >
+    <form
+      method="post"
+      action="{{ url_for('portal.excluir_aluno', matricula=a[0]) }}"
+      style="display: inline"
+      onsubmit="return confirm('Excluir o aluno {{ a[1] }}?')"
+    >
+      <input
+        type="hidden"
+        name="form_token"
+        value="{{ session.form_token }}"
+      /><button class="botao">Excluir</button>
+    </form>
+  </li>
+  {% else %}
+  <li>Nenhum aluno cadastrado.</li>
+  {% endfor %}
+</ul>
+{% endblock %}

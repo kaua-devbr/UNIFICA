@@ -1,50 +1,65 @@
-{% extends 'base.html' %}
-{% block titulo %}Notas e Frequência{% endblock %}
-{% block estilos %}
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/notas.css') }}">
-{% endblock %}
-{% block conteudo %}
-{% if not reais %}<p>Boletim ilustrativo para demonstração do TCC.</p>{% endif %}
+{% extends 'base.html' %} {% block titulo %}Notas e Frequência{% endblock %} {%
+block estilos %}
+<link
+  rel="stylesheet"
+  href="{{ url_for('static', filename='css/notas.css') }}"
+/>
+{% endblock %} {% block conteudo %} {% if not reais %}
+<p>Boletim ilustrativo para demonstração do TCC.</p>
+{% endif %}
 <section class="boletim" aria-labelledby="boletim-titulo">
-    <div class="boletim-resumo">
-        <article>
-            <h2>Média Geral</h2>
-            <strong>{{ '%.1f' | format(media) | replace('.', ',') }}</strong>
-            <small>Notas lançadas</small>
-        </article>
-        <article>
-            <h2>Frequência</h2>
-            <strong>{{ '%.0f' | format(frequencia) }}%</strong>
-            <small>{{ aulas - faltas }} de {{ aulas }} aulas</small>
-        </article>
-    </div>
-    <h1 id="boletim-titulo"><img src="{{ url_for('static', filename='img/Gr#U00e1fico.png') }}" alt="">Notas e Frequência</h1>
-    {% if not reais %}<p class="boletim-legenda">Boletim de demonstração · Média mínima do exemplo: 6,0.</p>{% endif %}
-    <div class="boletim-tabelas">
-        {% for grupo in disciplinas | batch((disciplinas | length + 1) // 2) %}
-        <table aria-label="Notas e faltas, parte {{ loop.index }}">
-            <thead>
-                <tr>
-                    <th scope="col">Disciplina</th>
-                    <th scope="col">Nota</th>
-                    <th scope="col">Situação</th>
-                    <th scope="col">Faltas</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for disciplina, nota, faltas_disciplina in grupo %}
-                <tr>
-                    <th scope="row">{{ disciplina }}</th>
-                    <td>{{ '%.1f' | format(nota) | replace('.', ',') if nota is not none else '—' }}</td>
-                    <td {% if nota is not none and nota >= 6 %}class="boletim-aprovado"{% endif %}>
-                        {% if nota is none %}Sem nota{% elif nota >= 6 %}Aprovado{% else %}Abaixo da média{% endif %}
-                    </td>
-                    <td>{{ faltas_disciplina }}</td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
+  <div class="boletim-resumo">
+    <article>
+      <h2>Média Geral</h2>
+      <strong>{{ '%.1f' | format(media) | replace('.', ',') }}</strong>
+      <small>Notas lançadas</small>
+    </article>
+    <article>
+      <h2>Frequência</h2>
+      <strong>{{ '%.0f' | format(frequencia) }}%</strong>
+      <small>{{ aulas - faltas }} de {{ aulas }} aulas</small>
+    </article>
+  </div>
+  <h1 id="boletim-titulo">
+    <img
+      src="{{ url_for('static', filename='img/Gr#U00e1fico.png') }}"
+      alt=""
+    />Notas e Frequência
+  </h1>
+  {% if not reais %}
+  <p class="boletim-legenda">
+    Boletim de demonstração · Média mínima do exemplo: 6,0.
+  </p>
+  {% endif %}
+  <div class="boletim-tabelas">
+    {% for grupo in disciplinas | batch((disciplinas | length + 1) // 2) %}
+    <table aria-label="Notas e faltas, parte {{ loop.index }}">
+      <thead>
+        <tr>
+          <th scope="col">Disciplina</th>
+          <th scope="col">Nota</th>
+          <th scope="col">Situação</th>
+          <th scope="col">Faltas</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for disciplina, nota, faltas_disciplina in grupo %}
+        <tr>
+          <th scope="row">{{ disciplina }}</th>
+          <td>
+            {{ '%.1f' | format(nota) | replace('.', ',') if nota is not none
+            else '—' }}
+          </td>
+          <td {% if nota is not none and nota>
+            = 6 %}class="boletim-aprovado"{% endif %}> {% if nota is none %}Sem
+            nota{% elif nota >= 6 %}Aprovado{% else %}Abaixo da média{% endif %}
+          </td>
+          <td>{{ faltas_disciplina }}</td>
+        </tr>
         {% endfor %}
-    </div>
+      </tbody>
+    </table>
+    {% endfor %}
+  </div>
 </section>
 {% endblock %}

@@ -1,20 +1,32 @@
-{% extends 'base.html' %}
-{% block titulo %}Perfil{% endblock %}
-{% block estilos %}
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/perfil.css') }}">
+{% extends 'base.html' %} {% block titulo %}Perfil{% endblock %} {% block
+estilos %}
+<link
+  rel="stylesheet"
+  href="{{ url_for('static', filename='css/perfil.css') }}"
+/>
+{% endblock %} {% block conteudo %}
+<div class="conteudo perfil-conteudo">
+  <header class="usuario">
+    <div class="foto">{{ nome[0] }}</div>
+
+    <div class="usuario-info">
+      <h3>{{ nome }}</h3>
+      <p>{{ nivel|capitalize }}</p>
+    </div>
+  </header>
+  <section class="dados">
+    {% for campo, titulo in [('nome','Nome
+    completo'),('matricula','Matrícula'),('email','E-mail'),('turma','Turma')]
+    %}
+    <div class="campo">
+      <h4>{{ titulo }}</h4>
+      <input
+        value="{{ request.environ['unifica.account'][campo] or '—' }}"
+        readonly
+        aria-label="{{ titulo }}"
+      />
+    </div>
+    {% endfor %}
+  </section>
+</div>
 {% endblock %}
-{% block conteudo %}
-    <div class="conteudo perfil-conteudo">
-
-
-            <header class="usuario">
-
-                <div class="foto">{{ nome[0] }}</div>
-
-                <div class="usuario-info">
-                    <h3>{{ nome }}</h3>
-                    <p>{{ nivel|capitalize }}</p></div></header>
-<section class="dados">
-{% for campo, titulo in [('nome','Nome completo'),('matricula','Matrícula'),('email','E-mail'),('turma','Turma')] %}
-<div class="campo"><h4>{{ titulo }}</h4><input value="{{ request.environ['unifica.account'][campo] or '—' }}" readonly aria-label="{{ titulo }}"></div>
-{% endfor %}</section></div>{% endblock %}

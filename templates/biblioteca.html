@@ -1,7 +1,35 @@
-<!doctype html><html lang="pt-BR"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Biblioteca escolar | UNIFICA</title><link rel="stylesheet" href="/static/css/acesso.css"><main>
-<p>UNIFICA · Biblioteca escolar</p><h1>Catálogo da biblioteca</h1>
-<p>{{ conta.nome }} · Matrícula {{ conta.matricula }}</p>
-<form method="get"><label>Pesquisar por título ou autor<input type="search" name="q" value="{{ request.args.get('q','') }}"></label><button>Pesquisar</button></form>
-<ul>{% for livro in ['Dom Casmurro — Machado de Assis','O Cortiço — Aluísio Azevedo','O Quinze — Rachel de Queiroz'] if request.args.get('q','')|lower in livro|lower %}<li>{{ livro }}</li>{% else %}<li>Nenhum título encontrado.</li>{% endfor %}</ul>
-<p><a href="/inicio">Portal do Aluno</a> · <a href="/sso/sair">Sair da conta</a></p></main></html>
+<!doctype html>
+<html lang="pt-BR">
+  <meta charset="utf-8" /><meta
+    name="viewport"
+    content="width=device-width,initial-scale=1"
+  />
+  <title>Biblioteca escolar | UNIFICA</title
+  ><link rel="stylesheet" href="/static/css/acesso.css" />
+  <main>
+    <p>UNIFICA · Biblioteca escolar</p>
+    <h1>Catálogo da biblioteca</h1>
+    <p>{{ conta.nome }} · Matrícula {{ conta.matricula }}</p>
+    <form method="get">
+      <label
+        >Pesquisar por título ou autor<input
+          type="search"
+          name="q"
+          value="{{ request.args.get('q','') }}" /></label
+      ><button>Pesquisar</button>
+    </form>
+    <ul>
+      {% for livro in ['Dom Casmurro — Machado de Assis','O Cortiço — Aluísio
+      Azevedo','O Quinze — Rachel de Queiroz'] if request.args.get('q','')|lower
+      in livro|lower %}
+      <li>{{ livro }}</li>
+      {% else %}
+      <li>Nenhum título encontrado.</li>
+      {% endfor %}
+    </ul>
+    <p>
+      <a href="/inicio">Portal do Aluno</a> ·
+      <a href="/sso/sair">Sair da conta</a>
+    </p>
+  </main>
+</html>
