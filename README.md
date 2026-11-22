@@ -1,8 +1,16 @@
-# UNIFICA · Um login para o ambiente escolar
+# UNIFICA — Um login para o ambiente escolar
 
-Imagine que um aluno abriu o portal para consultar suas informações e, logo depois, quis pesquisar um livro na biblioteca. Ele já informou a matrícula e a senha. O UNIFICA permite que a biblioteca reconheça esse mesmo aluno quando ele abre uma segunda aba. Esse é o **Single Sign-On (SSO)** que o projeto demonstra.
+O UNIFICA reúne o portal escolar e o aplicativo Flet. O administrador gerencia usuários, turmas, professores, notas, frequência, eventos e comunicados. O aluno acessa sua área acadêmica. As duas interfaces usam os mesmos dados no MySQL.
 
-O administrador gerencia usuários, turmas, professores, notas, frequência, eventos e comunicados. O aluno acessa sua área acadêmica. Na edição completa, o aplicativo Flet oferece outra interface para os dados do portal. O site e o aplicativo utilizam o mesmo MySQL. O Flet abre sua própria sessão, enquanto o portal e a biblioteca compartilham o login do navegador.
+## Instalação rápida e inicialização
+
+Com Python 3 e o MySQL Server já instalado e em execução, abra o terminal na pasta de `app.py`. No Windows, execute **`python instalar.py`**. No Ubuntu/Debian ou macOS, use **`python3 instalar.py`**. Use um terminal interativo. O instalador prepara o HTTPS com mkcert, registra uma autoridade certificadora local para o navegador, testa o MySQL e inicia o portal. O sistema pode pedir autorização para instalar o certificado ou pacotes. No Windows é necessário winget ou mkcert no PATH. No Ubuntu/Debian use uma sessão gráfica com chaveiro desbloqueado. No macOS, prepare o pacote keyring conforme o passo 4.
+
+Se já configurou o MySQL, o instalador reutiliza a conexão. Caso contrário, escolha **1** para conectar ao banco que contém seus cadastros ou **2** para preparar o banco local UNIFICA e a conta unifica_app. Na opção 2, informe a senha da conta MySQL da aplicação e, separadamente, a credencial administrativa para criar a base e conceder acesso. O portal cria suas tabelas ao iniciar. Se a conta unifica_app já existir, use a senha atual dela.
+
+No Windows, você também pode dar dois cliques em **Abrir-UNIFICA.cmd** para instalar na primeira vez ou iniciar o portal nas próximas. Nas próximas vezes, execute **`python app.py`** (ou `python3 app.py`). O terminal exibe o login admin, a senha local e, na linha seguinte, **https://127.0.0.1:5000**. Clique no endereço conforme o terminal ou copie para o navegador. No primeiro uso de uma conta existente, confirme a senha do portal para ativar o lembrete. O endereço é local ao computador. Para renovar os certificados, encerre o portal e repita o instalador. Mantenha a chave privada do mkcert e a pasta instance somente no seu computador.
+
+Os passos abaixo detalham a preparação manual do MySQL, o suporte e a instalação opcional do Flet. Mesmo ao preparar o banco pelo Workbench, execute o instalador uma vez para habilitar o HTTPS.
 
 ## 1. Prepare o computador
 
@@ -43,46 +51,22 @@ GRANT SELECT, INSERT, UPDATE, DELETE, CREATE, REFERENCES
 ON UNIFICA.* TO 'unifica_app'@'localhost';
 ```
 
-## 4. Inicie o portal
+## 4. Inicie o portal e salve a conexão
 
-Execute o bloco do seu sistema no terminal, dentro da pasta de `app.py`. A senha solicitada aqui pertence ao usuário **unifica_app do MySQL**. Se o banco existente se chama `unifica_demo`, ajuste `MYSQL_DATABASE` e informe as credenciais que já usa com ele.
+Na pasta que contém `app.py`, execute o comando do seu sistema. No Linux com sessão gráfica, instale primeiro o utilitário que acessa o cofre de senhas. No Ubuntu/Debian, use `sudo apt install libsecret-tools`. No Fedora, use `sudo dnf install libsecret`. No macOS, use um ambiente virtual com `python3 -m pip install keyring` e execute o portal com esse mesmo Python. No Windows, o projeto usa a proteção de dados da própria conta do Windows.
 
-### Windows · PowerShell
-
-```powershell
-$env:MYSQL_HOST = '127.0.0.1'
-$env:MYSQL_PORT = '3306'
-$env:MYSQL_DATABASE = 'UNIFICA'
-$env:MYSQL_USER = 'unifica_app'
-$env:MYSQL_PASSWORD = [System.Net.NetworkCredential]::new('', (Read-Host 'Senha do usuário MySQL' -AsSecureString)).Password
-py -3.13 .\app.py
-```
-
-### macOS e Linux · Bash
-
-```bash
-export MYSQL_HOST=127.0.0.1 MYSQL_PORT=3306
-export MYSQL_DATABASE=UNIFICA MYSQL_USER=unifica_app
-read -rsp 'Senha do usuário MySQL: ' MYSQL_PASSWORD
-echo
-export MYSQL_PASSWORD
-python3 app.py
-```
-
-Com um banco novo, o terminal mostra a matrícula **admin** e a senha gerada para o primeiro acesso. Guarde essa senha e entre no [portal local](http://127.0.0.1:5000). Em uma instalação existente, use a senha atual do administrador. Se sua edição do Windows mostrar opções para guardar ou redefinir a senha do portal, siga as instruções do terminal.
-
-Mantenha o terminal aberto durante o uso. **Ctrl+C** encerra o servidor. Para reiniciar no mesmo terminal, repita apenas o comando que executa `app.py`. Em um terminal novo, configure as variáveis novamente se o seu ambiente ainda não as carregar automaticamente. Os cadastros ficam no MySQL.
-
-## 5. Demonstre o SSO
-
-| Etapa | O que fazer | Resultado esperado |
+| Sistema | Iniciar o site | Testar e regravar a configuração |
 | --- | --- | --- |
-| 1 | Entre como admin e cadastre um aluno fictício, por exemplo `teste001`, com turma e senha inicial de pelo menos oito caracteres. | O aluno aparece na lista do administrador. |
-| 2 | Saia da conta administrativa e entre no portal com a matrícula e a senha do aluno. Abra **Perfil**. | O perfil mostra os dados cadastrados. |
-| 3 | Sem fechar o portal, abra a [Biblioteca Escolar](http://127.0.0.1:5000/biblioteca/) em outra aba do mesmo navegador. Pesquise “Machado”. | A biblioteca reconhece o aluno sem pedir outra senha e exibe o resultado da pesquisa. |
-| 4 | Na biblioteca, escolha **Sair da conta**, confirme a saída de todos os serviços e atualize a aba do portal. | O portal pede login novamente. |
+| Windows | `python app.py` | `python app.py --configurar-banco` |
+| Linux ou macOS | `python3 app.py` | `python3 app.py --configurar-banco` |
 
-Use `127.0.0.1` nas duas abas e mantenha o mesmo perfil do navegador. Uma janela anônima e uma janela comum têm cookies separados.
+No primeiro acesso pelo terminal, pressione Enter para aceitar cada sugestão ou digite o valor da sua instalação. Os valores sugeridos são servidor `127.0.0.1`, porta `3306`, banco `UNIFICA` e usuário `unifica_app`. Para aproveitar uma base existente, informe o nome exato dela, por exemplo `unifica_demo`. Por fim, digite a senha desse usuário do **MySQL**. O programa testa a conexão antes de salvar os dados para sua conta do sistema operacional. Cada computador tem sua própria configuração.
+
+Abra https://127.0.0.1:5000 quando o terminal indicar que o portal está disponível. Em uma base nova, use a matrícula **admin** e a senha de primeiro acesso exibida no terminal. Em uma base existente, use a senha atual do portal. Mantenha o terminal aberto enquanto usa o site. Após reiniciar o computador, basta repetir o comando de iniciar o site.
+
+## 5. Confira o acesso
+
+Entre como administrador e cadastre um aluno de teste. Saia da conta e entre com a matrícula desse aluno. Confira se o perfil e a turma correspondem ao cadastro e se o menu mostra a área do aluno.
 
 ## 6. Abra o aplicativo Flet
 
@@ -114,13 +98,64 @@ Nas próximas execuções, use apenas a última linha. Para conferir o compartil
 - `portal/`, `templates/` e `static/` reúnem a lógica e as telas do site.
 - `desktop/` contém o cliente e as telas do Flet na edição completa.
 
-## Se algo der errado
+## Suporte
 
-| Sintoma | Como resolver |
+Execute os comandos a partir da pasta que contém `app.py`.
+
+| Mensagem ou situação | Comando de suporte ou ação |
 | --- | --- |
-| `KeyError: 'MYSQL_USER'` ou `'MYSQL_PASSWORD'` | Execute o passo 4 no mesmo terminal que vai iniciar `app.py`. |
-| `1049 Unknown database` | Confira o valor de `MYSQL_DATABASE` e se o banco aparece no Workbench. O script cria `UNIFICA`. |
-| `1045 Access denied` | Teste a credencial do MySQL no Workbench e confira as permissões no banco selecionado. |
-| Erro 2003 ou conexão recusada | Inicie o serviço MySQL e confirme host e porta. |
-| Porta 5000 ocupada | Confira se o portal já está aberto em outro terminal. Para trocar de cópia, encerre a anterior com Ctrl+C. |
-| Flet abre, mas não consegue entrar | Abra o portal no navegador e confirme que ele está rodando a partir da mesma edição que contém `desktop/`. Use o Python do ambiente virtual para iniciar o Flet. |
+| Alterei a senha, o nome do banco ou o servidor | Execute `python app.py --configurar-banco` no Windows ou `python3 app.py --configurar-banco` no Linux/macOS. Reinicie o portal e o Flet para usar os novos dados. |
+| Variáveis de uma instalação anterior | No Bash, use `unset MYSQL_HOST MYSQL_PORT MYSQL_DATABASE MYSQL_USER MYSQL_PASSWORD`. No PowerShell, use `'MYSQL_HOST','MYSQL_PORT','MYSQL_DATABASE','MYSQL_USER','MYSQL_PASSWORD' | ForEach-Object { Remove-Item "Env:$_" -ErrorAction SilentlyContinue }`. Se elas voltarem no próximo terminal, revise o perfil de inicialização. |
+| Cofre indisponível no Linux | Execute `command -v secret-tool`. No Ubuntu/Debian, instale com `sudo apt install libsecret-tools gnome-keyring` e desbloqueie o chaveiro da sua sessão gráfica. Em SSH ou em um servidor sem chaveiro, use o bloco Bash abaixo. |
+| Cofre indisponível no macOS | No ambiente Python do portal, execute `python3 -m pip install keyring` e desbloqueie o chaveiro de início de sessão. Para iniciar o portal dentro do Flet, instale também no ambiente do aplicativo com `.venv/bin/python -m pip install keyring`. |
+| Erros 1044, 1045 ou 1142 | Teste com `mysql -h 127.0.0.1 -P 3306 -u unifica_app -p UNIFICA`. Use a senha do MySQL. Confira as permissões do passo 3 e reconfigure a conexão se necessário. |
+| Erro 1049, banco desconhecido | Execute `mysql -u root -p -e "SHOW DATABASES;"`. Se o banco existe, configure o nome exato. Para criar uma nova instalação, siga o passo 3. |
+| Erro 2003, conexão recusada | No Ubuntu/Debian, confira `systemctl status mysql` e, se parado, execute `sudo systemctl start mysql`. No Windows, descubra o serviço com `Get-Service *mysql*` e, em PowerShell administrativo, use por exemplo `Start-Service MySQL84` se esse for o nome listado. |
+| Flet abre, mas o portal não responde | Inicie o site pelo passo 4 e abra https://127.0.0.1:5000/healthz no navegador. O resultado esperado é `{"status":"ok"}`. Depois execute a última linha do passo 6 em outro terminal. O Flet também pode iniciar o portal internamente quando a configuração já está salva. |
+| Aparece `KeyError: 'MYSQL_USER'` ou `DispatcherMiddleware is not defined` | Confira a versão com `python app.py --help` (Linux/macOS: `python3 app.py --help`). Esta edição lista `--configurar-banco` e inclui a importação em `auth/gateway.py`. Se a opção faltar, extraia o ZIP atualizado numa pasta nova e execute a partir dela. |
+| Porta 5000 ocupada | Abra https://127.0.0.1:5000/healthz para verificar se o portal já está ativo. Para trocar de versão, encerre o portal anterior no terminal com Ctrl+C. |
+
+### Alternativa no Linux sem cofre ou sessão gráfica
+
+O portal aceita as credenciais do ambiente. Use este bloco no Bash para uma execução temporária. Ajuste o banco e o usuário à sua instalação. Com o site aberto, o Flet pode se conectar ao portal por HTTP em outro terminal.
+
+```bash
+export MYSQL_HOST=127.0.0.1 MYSQL_PORT=3306
+export MYSQL_DATABASE=UNIFICA MYSQL_USER=unifica_app
+IFS= read -rs -p 'Senha de unifica_app no MySQL: ' MYSQL_PASSWORD
+echo
+export MYSQL_PASSWORD
+python3 app.py
+```
+
+No Windows, para executar temporariamente sem o cofre, use o PowerShell:
+
+```powershell
+$env:MYSQL_HOST = '127.0.0.1'
+$env:MYSQL_PORT = '3306'
+$env:MYSQL_DATABASE = 'UNIFICA'
+$env:MYSQL_USER = 'unifica_app'
+$env:MYSQL_PASSWORD = [System.Net.NetworkCredential]::new('', (Read-Host 'Senha do MySQL' -AsSecureString)).Password
+python app.py
+```
+
+### Falhas durante o uso
+
+Em caso de falha de conexão durante um cadastro, reabra a lista e confira se o registro foi salvo antes de enviar novamente. O terminal do portal mostra o código MySQL das falhas tratadas. Para testar a conexão a partir da máquina do portal, execute:
+
+```sh
+mysql -h 127.0.0.1 -P 3306 -u unifica_app -p UNIFICA -e "SELECT DATABASE(), CURRENT_USER(); SHOW TABLES;"
+```
+
+Use o nome do seu banco e a porta configurada. Para 1054 ou 1146, confira a estrutura no Workbench com `SHOW CREATE TABLE nome_da_tabela;` e compare com o SQL da mesma versão do projeto. Faça backup antes de alterar uma tabela existente. Para 1205 ou 1213, atualize a tela e confira o estado da operação antes de tentar novamente.
+
+### Ver a senha do administrador ao iniciar
+
+Execute `python app.py` (Linux/macOS: `python3 app.py`) em um terminal local. Na primeira execução com uma conta admin já existente, pressione Enter e informe a senha atual do portal para guardá-la no cofre. Se esqueceu a senha, a opção R permite redefini-la após confirmação e encerra as sessões da conta. Nas próximas execuções, o terminal mostra a matrícula admin e a senha conferida com o banco. Quem consegue ver esse terminal consegue ler a senha.
+
+A alteração de senha pelo formulário da própria conta também atualiza o lembrete local depois da gravação no MySQL. Em outro computador ou após uma troca externa, informe a senha atual uma vez. No Linux o recurso usa secret-tool e um chaveiro desbloqueado. No macOS usa o pacote keyring e o Chaves. No Windows usa a proteção da conta do Windows.
+
+### Abrir o portal no navegador
+
+Com o servidor iniciado, clique em **Abrir portal** abaixo de LOGIN no Flet ou abra a URL exibida pelo terminal. O endereço padrão é `https://127.0.0.1:5000`. Para usar seu servidor publicado, salve a URL HTTPS completa como única linha em `instance/portal-url.txt` na pasta do projeto e reinicie o portal e o aplicativo. O arquivo configura o link do navegador. A publicação e o certificado HTTPS são configurados no servidor.
+

@@ -2,6 +2,7 @@
 from html.parser import HTMLParser
 from pathlib import Path
 import sys
+import ssl
 
 import httpx
 
@@ -31,7 +32,9 @@ class Cliente:
 
     @staticmethod
     def abrir_cliente(transport):
-        return httpx.Client(base_url="http://127.0.0.1:5000", trust_env=False,
+        ca = Path(__file__).resolve().parents[1] / "instance/tls/ca.pem"
+        contexto = ssl.create_default_context(cafile=str(ca) if ca.is_file() else None)
+        return httpx.Client(base_url="https://127.0.0.1:5000", verify=contexto, trust_env=False,
                                  follow_redirects=False, timeout=10, transport=transport)
 
     def conectar_localmente(self):
@@ -39,16 +42,15 @@ class Cliente:
         if raiz not in sys.path:
             sys.path.insert(0, raiz)
         from app import create_app
+        from database.configuracao import ConfiguracaoErro, diagnostico
         from mysql.connector import Error
 
         try:
             portal = create_app()
-        except KeyError as erro:
-            if erro.args[0] not in ("MYSQL_USER", "MYSQL_PASSWORD"):
-                raise
-            raise ErroPortal(f"Configure {erro.args[0]} no terminal que inicia o Flet.") from erro
+        except ConfiguracaoErro as erro:
+            raise ErroPortal(str(erro)) from erro
         except Error as erro:
-            raise ErroPortal(f"O portal local falhou ao acessar o MySQL (erro {erro.errno}). Confira o serviço e a configuração do banco.") from erro
+            raise ErroPortal(diagnostico(erro)) from erro
         self.http.close()
         self.http = self.abrir_cliente(httpx.WSGITransport(app=portal))
         self.tentar_portal_local = False
@@ -121,4 +123,5 @@ class Cliente:
             raise ErroPortal("Não foi possível atualizar a senha.")
         self.http.cookies.clear()
         self.token=None
+
 

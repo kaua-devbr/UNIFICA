@@ -16,7 +16,7 @@ def destination(value):
     return "/"
 
 
-def configure_identity(app, store):
+def configure_identity(app, store, pasta=None):
     app.permanent_session_lifetime = timedelta(days=7)
 
     @app.before_request
@@ -82,6 +82,9 @@ def configure_identity(app, store):
                     cur.execute("""INSERT INTO unifica_perfis(matricula,senha_em) VALUES (%s,NOW())
                                    ON DUPLICATE KEY UPDATE senha_em=NOW()""",(account["matricula"],))
                     cur.execute("DELETE FROM unifica_sessoes WHERE matricula=%s", (account["matricula"],))
+                if pasta is not None and account["matricula"] == "admin" and account["papel"] == "administrador":
+                    from auth.admin_local import salvar_lembrete
+                    salvar_lembrete(pasta, new)
                 session.clear()
                 return redirect("/sso/login", 303)
             error = "Confira a senha atual e use de 8 a 256 caracteres na nova."

@@ -1,0 +1,486 @@
+﻿﻿DOCUMENTAÇÃO DO SOFTWARE - UNIFICA
+
+
+1. IDENTIFICAÇÃO DO PROJETO
+
+
+Nome do sistema: Unifica
+
+
+Versão do documento: 3.0
+
+
+Data: 14/11/2026
+
+
+Responsável: Kauã Alexandre
+
+
+Equipe envolvida:
+
+
+- Kauã Alexandre
+- Paulo Ernesto
+- José Guilherme
+- Lucas Oliveira
+- Vitor Vinicius
+- Geraldo Agostinho
+- Miguel Marcio
+
+
+
+
+2. INTRODUÇÃO BASE
+
+
+O Unifica é um projeto de sistema de autenticação única (Single Sign-On - SSO), desenvolvido com o propósito de centralizar e simplificar o acesso aos sistemas acadêmicos da Escola Técnica Estadual Ministro Fernando Lyra.
+
+
+Atualmente, diferentes módulos e plataformas podem exigir processos de autenticação independentes, fazendo com que os usuários precisem utilizar credenciais distintas para acessar cada serviço. Essa fragmentação pode dificultar a experiência de utilização, tornando o acesso menos prático e organizado.
+
+
+Diante desse cenário, o Unifica propõe uma solução que permite ao usuário realizar sua autenticação por meio de um único ponto de acesso, possibilitando a integração com diferentes módulos acadêmicos. Dessa forma, o projeto busca proporcionar maior praticidade, padronização e controle no gerenciamento de acessos, contribuindo para uma experiência mais eficiente e organizada no ambiente escolar.
+
+
+
+
+3. OBJETIVOS DO SISTEMA
+
+
+Objetivo geral:
+
+
+Desenvolver uma plataforma centralizada de autenticação que permita aos membros da comunidade escolar acessar diferentes serviços institucionais utilizando uma única conta, simplificando o gerenciamento de usuários e melhorando a organização dos processos de acesso.
+
+
+Objetivos específicos:
+
+
+- Centralizar o cadastro e o gerenciamento das contas dos usuários da instituição;
+- Permitir a autenticação única para acesso a diferentes módulos acadêmicos integrados;
+- Reduzir a necessidade de múltiplos logins e senhas para os serviços institucionais;
+- Organizar os usuários de acordo com seus respectivos perfis e níveis de acesso;
+- Permitir o gerenciamento de permissões conforme as responsabilidades de cada tipo de usuário;
+- Facilitar a integração entre os diferentes módulos acadêmicos;
+- Proporcionar maior controle e segurança no processo de autenticação.
+
+
+4. PROBLEMAS QUE O SISTEMA PRETENDE RESOLVER
+
+
+Atualmente a utilização de diferentes pode exigir que os membros da comunidade escolar mantenham múltiplos cadastros e credenciais de acesso. Essa fragmentação dificulta o gerenciamento das contas, aumenta a complexidade do acesso aos serviços e pode gerar dificuldades relacionadas à organização e à segurança das informações de autenticação.
+O Unifica busca solucionar esses problemas por meio da centralização da autenticação, proporcionando uma experiência de acesso mais organizada, simplificada e padronizada.
+
+
+O que o sistema fará:
+
+
+O Unifica será responsável pela centralização da identidade e da autenticação dos usuários da instituição, oferecendo os seguintes recursos:
+
+
+- Cadastro e gerenciamento de contas de alunos;
+- Cadastro e gerenciamento de contas de professores;
+- Cadastro e gerenciamento de contas de gestores;
+- Autenticação centralizada por meio de uma única conta;
+- Acesso unificado aos serviços acadêmicos integrados;
+- Gerenciamento de sessões de autenticação;
+- Controle de permissões de acesso de acordo com o perfil do usuário;
+- Integração com módulos e sistemas institucionais compatíveis.
+
+
+O que o sistema não fará:
+
+
+- Gerenciar atividades acadêmicas, como tarefas, avaliações e frequência;
+- Substituir os sistemas acadêmicos já existentes na instituição;
+- Administrar conteúdos e funcionalidades internas dos módulos integrados;
+- Armazenar e gerenciar informações acadêmicas, como notas, frequência e histórico escolar;
+- Realizar processamento de informações ou transações financeiras;
+- Garantir o funcionamento interno ou a disponibilidade de sistemas externos que não estejam sob sua administração;
+- Permitir acesso automático a módulos que não estejam integrados à plataforma.
+
+
+Funcionalidades previstas:
+
+
+- Autenticação centralizada de usuários;
+- Cadastro e gerenciamento de contas;
+- Controle de perfis e permissões;
+- Gerenciamento de sessões;
+- Encerramento de sessão;
+- Validação de credenciais e tokens de autenticação;
+- Integração com os módulos acadêmicos da instituição.
+
+
+Limites do projeto:
+
+
+O sistema será desenvolvido prioritariamente para utilização interna da ETE Ministro Fernando Lyra. Sua utilização estará limitada aos membros autorizados da comunidade escolar e aos módulos que possuam integração compatível com a plataforma.
+
+
+O Unifica será responsável pela autenticação e identificação dos usuários, enquanto as funcionalidades específicas de cada serviço continuarão sob responsabilidade dos respectivos módulos.
+
+
+5. PÚBLICO ALVO
+
+
+Os membros da comunidade escolar da Escola Técnica Estadual Ministro Fernando Lyra (ETE MFL), incluindo:
+
+
+- Alunos;
+- Professores;
+- Gestores e demais funcionários autorizados.
+
+
+Contexto de utilização:
+
+
+O sistema será utilizado no ambiente institucional da ETE Ministro Fernando Lyra, permitindo a autenticação e o acesso aos serviços acadêmicos que possuam integração com a plataforma Unifica. Seu acesso ocorrerá por meio de dispositivos conectados à internet e navegadores compatíveis.
+
+
+
+
+6. REQUISITOS FUNCIONAIS E NÃO FUNCIONAIS
+
+
+Requisitos Funcionais
+
+
+
+
+Requisito Funcional 1 - Cadastro de usuários
+
+
+O sistema deverá permitir o cadastro de contas para os membros autorizados da comunidade escolar, incluindo alunos, professores e gestores.
+
+
+Requisito Funcional 2 - Autenticação de usuários
+
+
+O sistema deverá permitir que os usuários realizem login por meio de uma plataforma centralizada, utilizando suas credenciais individuais.
+
+
+Requisito Funcional 3 - Acesso unificado aos módulos
+
+
+O sistema deverá permitir que os usuários acessem diferentes módulos acadêmicos integrados utilizando uma única autenticação, sem a necessidade de realizar um novo login em cada serviço.
+
+
+Requisito Funcional 4 - Gerenciamento de contas
+
+
+O sistema deverá permitir que os administradores realizem operações de gerenciamento das contas dos usuários, incluindo consulta, alteração e desativação de cadastros.
+
+
+Requisito Funcional 5 - Controle de perfis e permissões
+
+
+O sistema deverá permitir a atribuição de diferentes perfis aos usuários, determinando quais serviços e funcionalidades estarão disponíveis de acordo com suas permissões.
+
+
+Requisito Funcional 6 - Validação de 
+autenticação
+
+
+O sistema deverá verificar a validade das credenciais e dos tokens de autenticação antes de autorizar o acesso aos módulos integrados.
+
+
+Requisito Funcional 7 - Gerenciamento de sessões
+
+
+O sistema deverá controlar as sessões dos usuários autenticados, permitindo identificar sessões ativas e aplicar as regras de validade estabelecidas.
+
+
+Requisito Funcional 8 - Encerramento de sessão
+
+
+O sistema deverá permitir que o usuário encerre sua sessão de autenticação, finalizando o acesso conforme as regras de gerenciamento de sessão.
+
+
+Requisito Funcional 9- Integração com módulos acadêmicos
+
+
+O sistema deverá disponibilizar mecanismos de integração para que os módulos acadêmicos compatíveis possam utilizar a autenticação centralizada do Unifica.
+
+
+* Requisitos Não Funcionais
+
+
+
+
+Requisito Não Funcional 1- Segurança
+
+
+O sistema deverá proteger as credenciais e informações de autenticação dos usuários, impedindo o acesso por pessoas não autorizadas. As senhas não deverão ser armazenadas em texto simples.
+
+
+Requisito Não Funcional 2 - Desempenho
+
+
+O sistema deverá apresentar tempo de resposta adequado durante os processos de autenticação, validação de credenciais e comunicação com os módulos integrados.
+
+
+ Requisito Não Funcional 3 - Disponibilidade
+
+
+A plataforma deverá permanecer disponível durante os períodos previstos de utilização pela instituição, considerando a necessidade de acesso aos serviços acadêmicos integrados.
+
+
+Requisito Não Funcionais 4 - Usabilidade
+
+
+A interface deverá apresentar uma organização simples e intuitiva, permitindo que os usuários realizem operações de autenticação e gerenciamento de contas sem dificuldades desnecessárias.
+
+
+Requisito Não Funcional 5- Compatibilidade
+
+
+O sistema deverá ser compatível com os principais navegadores modernos e utilizar mecanismos de integração que permitam a comunicação com os módulos acadêmicos previstos no projeto.
+
+
+Requisito Não Funcional 6- Confiabilidade
+
+
+O sistema deverá realizar corretamente os processos de autenticação e validação de acesso, evitando inconsistências no gerenciamento de sessões e a concessão indevida de permissões.
+
+
+Requisito Não Funcional 7 - Acessibilidade
+
+
+A interface deverá apresentar recursos que facilitem a utilização por pessoas com diferentes necessidades, incluindo navegação por teclado, identificação adequada dos campos e contraste suficiente entre os elementos visuais.
+
+
+7. REGRAS DE NEGÓCIO
+
+
+As regras de negócio determinam as condições que deverão ser respeitadas durante o cadastro, a autenticação e o gerenciamento dos usuários na plataforma.
+
+
+7.1. Regras de cadastro e acesso
+
+
+- Todo usuário autorizado deverá possuir uma conta individual para utilizar os serviços integrados ao Unifica;
+- Cada conta deverá possuir um identificador de login exclusivo;
+- O cadastro deverá conter as informações necessárias para identificar o usuário e definir seu perfil de acesso;
+- Os usuários deverão ser classificados de acordo com seus respectivos perfis, como aluno, professor ou gestor;
+- O acesso aos módulos deverá respeitar as permissões atribuídas ao perfil do usuário;
+- Os administradores serão responsáveis pelo gerenciamento das contas e das permissões, conforme suas atribuições.
+
+
+7.2. Restrições
+
+
+- Não poderão existir contas com identificadores de login duplicados;
+- Usuários não poderão acessar serviços ou funcionalidades para os quais não possuam autorização;
+- As credenciais de acesso deverão ser individuais e não deverão ser compartilhadas entre usuários;
+- Contas desativadas ou sem autorização não poderão realizar novas autenticações;
+- A integração com um módulo não deverá conceder automaticamente acesso a todas as suas funcionalidades;
+- O sistema não deverá armazenar senhas em formato de texto simples.
+
+
+7.3. Condições específicas
+
+
+- O usuário deverá possuir uma conta cadastrada e ativa para realizar a autenticação;
+- O acesso a um módulo dependerá da integração desse serviço com o Unifica;
+- O usuário deverá possuir as permissões necessárias para acessar o serviço solicitado;
+- A autenticação deverá ser validada antes da liberação do acesso aos módulos;
+- O encerramento da sessão deverá seguir as regras de gerenciamento de sessão estabelecidas pela plataforma.
+
+
+8. CASOS DE USO
+
+
+Os casos de uso representam as interações entre os usuários e o sistema, demonstrando quais operações podem ser realizadas e quais etapas são necessárias para executá-las.
+
+
+9.1. Atores
+
+
+- Aluno: usuário que utiliza a plataforma para autenticar-se e acessar os módulos acadêmicos disponíveis para seu perfil.
+- Professor: usuário que utiliza a plataforma para acessar os serviços institucionais autorizados ao seu perfil.
+- Gestor: usuário que utiliza os serviços institucionais e pode possuir permissões administrativas, conforme sua atribuição.
+- Administrador: responsável pelo gerenciamento das contas, perfis e permissões da plataforma.
+
+
+9.2. Ações (casos de uso)
+
+
+- Realizar cadastro de usuário;
+- Realizar login;
+- Acessar módulos integrados;
+- Consultar informações da própria conta;
+- Gerenciar contas de usuários;
+- Atribuir e gerenciar permissões;
+- Encerrar sessão.
+
+
+9.3. Fluxos principais e alternativos
+
+
+Caso de uso 1 - Realizar login
+
+
+Ator principal: Aluno, professor ou gestor.
+
+
+Fluxo principal:
+
+
+1. O usuário acessa a plataforma Unifica.
+2. O sistema apresenta a tela de autenticação.
+3. O usuário informa seu login e senha.
+4. O sistema verifica as credenciais fornecidas.
+5. O sistema confirma a identidade do usuário.
+6. Uma sessão de autenticação é estabelecida.
+7. O usuário pode acessar os módulos integrados autorizados ao seu perfil.
+
+
+Fluxos alternativos:
+
+
+- Caso as credenciais estejam incorretas, o sistema deverá informar que os dados de acesso são inválidos.
+- Caso a conta esteja desativada, o sistema deverá impedir a autenticação.
+- Caso ocorra uma falha durante o processo, o sistema deverá informar que não foi possível concluir a autenticação.
+
+
+Caso de uso 2 - Acessar módulo integrado
+
+
+Ator principal: Aluno, professor ou gestor.
+
+
+Fluxo principal:
+
+
+1. O usuário realiza login na plataforma Unifica.
+2. O usuário seleciona um módulo acadêmico integrado.
+3. O módulo solicita a validação da autenticação.
+4. O Unifica verifica a validade das informações de autenticação.
+5. O sistema verifica se o usuário possui autorização para acessar o serviço.
+6. O acesso ao módulo é liberado.
+
+
+Fluxos alternativos:
+
+
+- Caso o usuário não esteja autenticado, deverá ser direcionado ao processo de login.
+- Caso o usuário não possua permissão, o acesso ao módulo deverá ser negado.
+- Caso o módulo não esteja disponível ou integrado, o sistema não poderá garantir o acesso ao serviço.
+
+
+Caso de uso 3 - Cadastrar usuário
+
+
+Ator principal: Administrador.
+
+
+Fluxo principal:
+
+
+1. O administrador acessa a área de gerenciamento de usuários.
+2. Seleciona a opção de cadastrar usuário.
+3. Informa os dados necessários para o cadastro.
+4. Define o perfil correspondente ao usuário.
+5. O sistema verifica se as informações obrigatórias foram preenchidas e se o identificador de login já existe.
+6. O sistema registra a nova conta.
+7. O cadastro é confirmado.
+
+
+Fluxos alternativos:
+
+
+- Caso existam informações obrigatórias ausentes, o sistema deverá solicitar seu preenchimento.
+- Caso o identificador de login já esteja cadastrado, o sistema deverá impedir a duplicação.
+- Caso ocorra uma falha no registro, o sistema deverá informar que não foi possível concluir o cadastro.
+
+
+Caso de uso 0 - Encerrar sessão
+
+
+Ator principal: Aluno, professor ou gestor.
+
+
+Fluxo principal:
+
+
+1. O usuário seleciona a opção de sair.
+2. O sistema inicia o encerramento da sessão.
+3. A sessão de autenticação é finalizada conforme as regras estabelecidas.
+4. O usuário deixa de possuir uma sessão autenticada ativa.
+
+
+Fluxo alternativo:
+
+
+- Caso ocorra uma falha no encerramento da sessão, o sistema deverá informar que não foi possível concluir a operação.
+
+
+
+
+9. MODELO DO BANCO DE DADOS
+
+
+10. MODELO DE TESTE
+
+10.1 Objetivo: verificar se o Unifica cumpre os requisitos funcionais, não funcionais e as regras de negócio descritos neste documento.
+
+10.2 Estratégia: testes funcionais manuais (caixa-preta) pelo navegador, mais testes automatizados do fluxo de SSO em tests/test_sso.py, rodados em banco MySQL de teste vazio. Ambiente: Python 3.10+, MySQL, Chrome, Edge e Firefox.
+
+10.3 Casos de teste
+
+Login (RF2, RF6)
+
+CT01 Login com matrícula e senha corretas → sessão criada e acesso ao Portal.
+
+CT02 Senha incorreta → mensagem de dados inválidos, sem sessão.
+
+CT03 Matrícula inexistente → mesma mensagem genérica do CT02.
+
+CT04 Conta desativada → autenticação negada.
+
+CT05 Campos vazios → sistema pede o preenchimento.
+
+Cadastro e contas (RF1, RF4, RF5)
+
+CT06 Admin cadastra aluno com dados completos → conta criada e aluno consegue logar.
+
+CT07 Matrícula duplicada → cadastro impedido.
+
+CT08 Campo obrigatório ausente → sistema solicita o preenchimento.
+
+CT09 Aluno tenta abrir "Cadastrar alunos" → acesso negado.
+
+CT10 Admin consulta, altera e desativa uma conta → alterações salvas.
+
+SSO e integração (RF3, RF9)
+
+CT11 Logado no Portal, abre a Biblioteca em outra aba → entra sem novo login e vê nome e matrícula.
+
+CT12 Acessa a Biblioteca sem login → redirecionado ao login.
+
+CT13 Identificador de sessão inválido ou adulterado → acesso rejeitado.
+
+Sessões (RF7, RF8)
+
+CT14 Logout pela Biblioteca, depois atualiza o Portal → volta ao login.
+
+CT15 Validade da sessão → 8h sem "Lembrar de mim", 7 dias com ele (simular expirando a sessão no banco).
+
+CT16 Troca de senha → sessões antigas revogadas.
+
+CT17 Reinício do servidor → contas continuam cadastradas.
+
+Não funcionais (RNF1, 2, 5, 7)
+
+CT18 Tabela unifica_contas → senhas armazenadas como hash, nunca em texto simples.
+
+CT19 Entrada maliciosa no login (ex.: ' OR 1=1 --) → rejeitada, sem erro ou acesso indevido.
+
+CT20 Login usável só pelo teclado, com campos identificados e contraste adequado.
+
+CT21 Fluxo principal funciona no Chrome, Edge e Firefox.
+
+CT22 Login responde em até 2 s em condições normais (limite sugerido, ajuste se o professor pedir outro).
+
+10.4 Critério de aceitação: todos os casos executados, com os CT01 a CT19 aprovados e qualquer falha registrada com correção ou justificativa

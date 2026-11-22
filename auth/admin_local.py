@@ -1,6 +1,5 @@
-"""Lembrete local da senha do portal, protegido pelo usuário do Windows."""
+"""Lembrete local da senha do portal, protegido pela conta do sistema."""
 import base64
-import binascii
 import os
 from pathlib import Path
 import secrets
@@ -27,7 +26,8 @@ def converter(valor, proteger):
     ps = Path(os.environ["SystemRoot"]) / "System32/WindowsPowerShell/v1.0/powershell.exe"
     resultado = subprocess.run([str(ps), "-NoProfile", "-NonInteractive", "-Command",
         "$ErrorActionPreference='Stop';" + comando], input=entrada+"\n",
-        encoding="ascii", capture_output=True, check=True, timeout=15)
+        encoding="ascii", capture_output=True, check=True, timeout=15,
+        env={**os.environ, "PSModulePath": str(ps.parent / "Modules")})
     saida = resultado.stdout.strip()
     return saida if proteger else base64.b64decode(saida, validate=True).decode()
 
@@ -43,25 +43,61 @@ def guardar(arquivo, senha):
         caminho.unlink(missing_ok=True)
 
 
+def credencial(pasta, senha=None):
+    arquivo = pasta / "admin.dpapi"
+    if os.name == "nt":
+        if senha is not None:
+            guardar(arquivo, senha)
+        elif arquivo.is_file():
+            return converter(arquivo.read_text(encoding="ascii"), False)
+        return None
+    identificador = str(pasta.resolve())
+    if sys.platform == "darwin":
+        from keyring.backends.macOS import Keyring
+        cofre = Keyring()
+        if senha is None:
+            return cofre.get_password("UNIFICA/portal-admin", identificador)
+        cofre.set_password("UNIFICA/portal-admin", identificador, senha)
+        return None
+    atributos = ["application", "UNIFICA", "tipo", "portal-admin", "instancia", identificador]
+    if senha is None:
+        r = subprocess.run(["secret-tool", "lookup", *atributos], capture_output=True, timeout=15)
+        if r.returncode == 1 and not r.stderr.strip():
+            return None
+        r.check_returncode()
+        return base64.b64decode(r.stdout.strip(), validate=True).decode()
+    subprocess.run(["secret-tool", "store", "--label=UNIFICA - administrador", *atributos],
+                   input=base64.b64encode(senha.encode()), capture_output=True, check=True, timeout=15)
+
+
+def salvar_lembrete(pasta, senha):
+    try:
+        credencial(pasta, senha)
+    except Exception:
+        print("Senha do portal atualizada no banco. Cofre local indisponível para guardar o lembrete.", flush=True)
+
+
 def mostrar(store, pasta, inicial=None):
-    if os.name != "nt" or not sys.stdin.isatty() or not sys.stdout.isatty():
+    if not sys.stdout.isatty():
         return
     conta = store.account("admin")
     if not conta or conta["papel"] != "administrador":
         return
-    arquivo = pasta / "admin.dpapi"
     senha = inicial
-    if not senha and arquivo.is_file():
-        try:
-            candidata = converter(arquivo.read_text(encoding="ascii"), False)
-            if check_password_hash(conta["senha"], candidata):
-                print(f"Portal | matrícula: admin | senha: {candidata}", flush=True)
-                return
-        except (OSError, subprocess.SubprocessError, UnicodeError, binascii.Error):
-            pass
     if not senha:
-        escolha = input("Senha do portal admin: [G] guardar a atual, [R] redefinir ou [Enter] continuar: ").strip().lower()
-        if escolha == "g":
+        try:
+            candidata = credencial(pasta)
+        except Exception:
+            candidata = None
+        if candidata and check_password_hash(conta["senha"], candidata):
+            print(f"Login: admin\nSenha: {candidata}", flush=True)
+            return
+        if not sys.stdin.isatty():
+            print("Para ativar o lembrete, abra app.py em um terminal interativo.")
+            return
+    if not senha:
+        escolha = input("Senha do portal admin: [G] guardar a atual, [R] redefinir ou [Enter] guardar a atual: ").strip().lower()
+        if escolha in ("g", ""):
             senha = getpass("Senha atual do portal admin: ")
             if not check_password_hash(conta["senha"], senha):
                 print("Senha incorreta. Iniciando o portal.")
@@ -81,8 +117,5 @@ def mostrar(store, pasta, inicial=None):
                                ON DUPLICATE KEY UPDATE senha_em=NOW()""", ("admin",))
         else:
             return
-        print(f"Portal | matrícula: admin | senha: {senha}", flush=True)
-    try:
-        guardar(arquivo, senha)
-    except (OSError, subprocess.SubprocessError):
-        print("Não foi possível guardar o lembrete nesta conta do Windows.")
+    print(f"Login: admin\nSenha: {senha}", flush=True)
+    salvar_lembrete(pasta, senha)

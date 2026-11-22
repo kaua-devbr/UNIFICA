@@ -1,21 +1,10 @@
-import os
 from contextlib import contextmanager
 
-import mysql.connector
+from database.configuracao import abrir, configuracao
 
 
 def conectar():
-    """Abre uma conexão com o MySQL. O crud.py e o resto do projeto usam esta mesma função."""
-    return mysql.connector.connect(
-        host=os.getenv("MYSQL_HOST", "localhost"),
-        port=int(os.getenv("MYSQL_PORT", "3306")),
-        user=os.environ["MYSQL_USER"],
-        password=os.environ["MYSQL_PASSWORD"],
-        database=os.getenv("MYSQL_DATABASE", "UNIFICA"),
-        use_pure=True,
-        charset="utf8mb4",
-        connection_timeout=5,
-    )
+    return abrir(configuracao())
 
 
 class Store:
@@ -60,3 +49,4 @@ class Store:
         from werkzeug.security import generate_password_hash
         self.query("INSERT INTO unifica_contas (matricula,nome,email,turma,papel,senha) VALUES (?,?,?,?,?,?)",
                    (matricula, nome, email, turma, papel, generate_password_hash(password)))
+

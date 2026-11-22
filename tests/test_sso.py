@@ -11,7 +11,7 @@ from app import create_app
 
 
 def field(response, name):
-    return re.search(fr'name="{name}" value="([^"]+)"', response.get_data(as_text=True))[1]
+    return re.search(fr'name="{name}"\s+value="([^"]+)"', response.get_data(as_text=True))[1]
 
 
 class SingleSignOn(unittest.TestCase):
@@ -69,4 +69,5 @@ class SingleSignOn(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
 

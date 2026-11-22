@@ -1,4 +1,5 @@
 import flet as ft
+from portal_url import endereco
 from .comum import campo, botao, titulo, ROXO_ESCURO
 
 def mostrar_login(page, ctx):
@@ -37,7 +38,8 @@ def mostrar_login(page, ctx):
                         titulo("BEM-VINDO", 30),
                         ft.Container(height=10),
                         matricula, senha,
-                        botao("LOGIN", entrar, largura=180)
+                        botao("LOGIN", entrar, largura=180),
+                        ft.TextButton("Abrir portal", url=endereco()),
                     ],
                     horizontal_alignment=ft.CrossAxisAlignment.CENTER,
                     spacing=15

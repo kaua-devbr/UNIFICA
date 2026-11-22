@@ -10,7 +10,8 @@ sys.path.insert(0, str(ROOT / "vendor"))
 
 from flask import (Blueprint, Flask, abort, current_app, flash, redirect,
                    render_template, request, session, url_for)
-from auth.gateway import Gateway
+from auth.gateway import Gateway, erro_banco
+from mysql.connector import Error as MySQLError
 from auth.identity import configure_identity
 from database.store import Store
 import database.crud as crud
@@ -216,7 +217,8 @@ def create_app(folder=None, *, mostrar_senha_admin=False):
     if not store.account("admin"):
         password = secrets.token_urlsafe(15)
         store.create("admin", "Administração", "", "", "administrador", password)
-        print(f"Primeiro acesso | matrícula: admin | senha: {password}", flush=True)
+        if not mostrar_senha_admin:
+            print(f"Primeiro acesso | matrícula: admin | senha: {password}", flush=True)
 
     if mostrar_senha_admin:
         from auth.admin_local import mostrar
@@ -232,10 +234,11 @@ def create_app(folder=None, *, mostrar_senha_admin=False):
         app.config.update(SECRET_KEY=hmac.digest(key, name.encode(), "sha256"),
                           SESSION_COOKIE_NAME="unifica_" + name, SESSION_COOKIE_SAMESITE="Lax",
                           TRUSTED_HOSTS=["127.0.0.1", "localhost"])
+        app.register_error_handler(MySQLError, erro_banco)
         return app
 
     identity = service("identidade")
-    configure_identity(identity, store)
+    configure_identity(identity, store, folder)
     web = service("portal_aluno")
     web.register_blueprint(portal)
     web.register_blueprint(admin)
@@ -276,8 +279,33 @@ def create_app(folder=None, *, mostrar_senha_admin=False):
 
 
 if __name__ == "__main__":
-    from waitress import serve
-    app = create_app(mostrar_senha_admin=True)
-    print("UNIFICA disponível em http://127.0.0.1:5000 | Ctrl+C encerra.", flush=True)
-    serve(app, host="127.0.0.1", port=5000)
+    from werkzeug.serving import make_server
+    import ssl
+    import argparse
+    from database.configuracao import ConfiguracaoErro, configurar, diagnostico, preparar
+    from mysql.connector import Error
 
+    parser = argparse.ArgumentParser(description="Portal UNIFICA")
+    parser.add_argument("--configurar-banco", action="store_true", help="Testar e salvar a conexão MySQL")
+    args = parser.parse_args()
+    try:
+        if args.configurar_banco:
+            configurar()
+            sys.exit(0)
+        pasta_tls = ROOT / "instance/tls"
+        tls = ssl.SSLContext(ssl.PROTOCOL_TLS_SERVER)
+        try:
+            tls.load_cert_chain(pasta_tls / "cert.pem", pasta_tls / "key.pem")
+        except OSError:
+            sys.exit("Prepare o HTTPS local com python instalar.py (Linux/macOS: python3 instalar.py).")
+        preparar()
+        app = create_app(mostrar_senha_admin=True)
+    except ConfiguracaoErro as erro:
+        sys.exit(str(erro))
+    except Error as erro:
+        sys.exit(diagnostico(erro))
+    except (EOFError, KeyboardInterrupt):
+        sys.exit("Configuração interrompida.")
+    with make_server("127.0.0.1", 5000, app, threaded=True, ssl_context=tls) as servidor:
+        print("https://127.0.0.1:5000", flush=True)
+        servidor.serve_forever()
