@@ -7,6 +7,7 @@ block estilos %}
 {% endblock %} {% block conteudo %} {% if not reais %}
 <p>Boletim ilustrativo para demonstração do TCC.</p>
 {% endif %}
+{% if not disciplinas %}<h1>Notas e Frequência</h1><p>Nenhuma nota lançada para esta matrícula.</p>{% else %}
 <section class="boletim" aria-labelledby="boletim-titulo">
   <div class="boletim-resumo">
     <article>
@@ -50,8 +51,7 @@ block estilos %}
             {{ '%.1f' | format(nota) | replace('.', ',') if nota is not none
             else '—' }}
           </td>
-          <td {% if nota is not none and nota>
-            = 6 %}class="boletim-aprovado"{% endif %}> {% if nota is none %}Sem
+          <td {% if nota is not none and nota >= 6 %}class="boletim-aprovado"{% endif %}> {% if nota is none %}Sem
             nota{% elif nota >= 6 %}Aprovado{% else %}Abaixo da média{% endif %}
           </td>
           <td>{{ faltas_disciplina }}</td>
@@ -61,5 +61,5 @@ block estilos %}
     </table>
     {% endfor %}
   </div>
-</section>
+</section>{% endif %}
 {% endblock %}

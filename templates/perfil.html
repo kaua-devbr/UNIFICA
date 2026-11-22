@@ -15,8 +15,7 @@ estilos %}
     </div>
   </header>
   <section class="dados">
-    {% for campo, titulo in [('nome','Nome
-    completo'),('matricula','Matrícula'),('email','E-mail'),('turma','Turma')]
+    {% for campo, titulo in [('nome','Nome completo'),('matricula','Matrícula'),('email','E-mail'),('turma','Turma')]
     %}
     <div class="campo">
       <h4>{{ titulo }}</h4>
@@ -27,6 +26,7 @@ estilos %}
       />
     </div>
     {% endfor %}
+    <div class="campo"><h4>Escola</h4><input value="{{ escola or '-' }}" readonly aria-label="Escola"></div>
   </section>
 </div>
 {% endblock %}

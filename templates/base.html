@@ -33,8 +33,7 @@
           aria-label="{{ texto }}"
           {%
           if
-          request.endpoint=""
-          ="rota"
+          request.endpoint == rota
           %}
           aria-current="page"
           {%

@@ -30,6 +30,7 @@ function message(title,text) {
 }
 function field(grid,name,label,type,value,options={}) {
     const wrap=el("label",label,options.wide?"wide":"");
+    if(type==="date" || type==="datetime-local") return calendarField(grid,name,label,value,type==="datetime-local");
     const input=el(type==="select"?"select":type==="textarea"?"textarea":"input");
     input.name=name;
     if(input.tagName==="INPUT") input.type=type;
@@ -41,6 +42,57 @@ function field(grid,name,label,type,value,options={}) {
     input.required=!options.optional;
     input.value=pretty(value);
     wrap.append(input); grid.append(wrap); return input;
+}
+function calendarField(grid,name,label,initial,withTime){
+    const wrap=el("div"), value=el("input"), trigger=button("",openCalendar);
+    value.type="hidden"; value.name=name; value.value=initial;
+    function caption(){
+        const [day,time]=value.value.split("T");
+        trigger.textContent=label+" · "+day.split("-").reverse().join("/")+(time?" "+time:"");
+    }
+    function openCalendar(){
+        const picker=el("dialog"), heading=el("strong"), days=el("div");
+        days.className="picker-days";
+        let [selected,time]=value.value.split("T");
+        const [year,month]=selected.split("-").map(Number);
+        let shown=new Date(year,month-1,1);
+        const pad=n=>String(n).padStart(2,"0");
+        function draw(){
+            heading.textContent=shown.toLocaleDateString("pt-BR",{month:"long",year:"numeric"});
+            days.replaceChildren();
+            for(const day of ["Dom","Seg","Ter","Qua","Qui","Sex","Sáb"]) days.append(el("small",day));
+            for(let i=0;i<shown.getDay();i++) days.append(el("span"));
+            const count=new Date(shown.getFullYear(),shown.getMonth()+1,0).getDate();
+            for(let n=1;n<=count;n++){
+                const iso=[shown.getFullYear(),pad(shown.getMonth()+1),pad(n)].join("-");
+                const b=button(n,()=>{selected=iso;draw();days.querySelector('[aria-pressed="true"]').focus()});
+                b.setAttribute("aria-pressed",String(selected===iso));days.append(b);
+            }
+        }
+        function move(n){shown.setMonth(shown.getMonth()+n);draw()}
+        const nav=el("div",undefined,"controls");
+        nav.append(button("Anterior",()=>move(-1)),heading,button("Próximo",()=>move(1)));
+        picker.setAttribute("aria-label",label);
+        picker.append(nav,days);
+        let hours,minutes;
+        if(withTime){
+            const clock=el("div",undefined,"controls");
+            function part(label,count,current){
+                const container=el("label",label), select=el("select");
+                for(let n=0;n<count;n++) select.add(new Option(pad(n),pad(n)));
+                select.value=current;container.append(select);clock.append(container);return select;
+            }
+            hours=part("Hora",24,time.slice(0,2));minutes=part("Minuto",60,time.slice(3,5));
+            picker.append(clock);
+        }
+        picker.append(button("Cancelar",()=>picker.close()),button("Confirmar",()=>{
+            value.value=selected+(withTime?"T"+hours.value+":"+minutes.value:"");caption();picker.close()
+        }));
+        document.body.append(picker);
+        picker.addEventListener("close",()=>{picker.remove();trigger.focus()},{once:true});
+        draw();picker.showModal();
+    }
+    caption();wrap.append(value,trigger);grid.append(wrap);return value;
 }
 function formFor(kind,id) {
     const form=el("form"); form.method="post"; form.action="alterar/"+kind;
@@ -74,8 +126,18 @@ function edit(kind,id) {
         const list=el("datalist");list.id="group-options";group.setAttribute("list",list.id);
         state.groups.forEach(g=>{const o=el("option");o.value=g.nome;list.append(o)});grid.append(list);
         const roleSelect=form.elements.papel;
-        const requireGroup=()=>{group.required=(row.papel||roleSelect?.value)==="aluno"};
-        requireGroup();roleSelect?.addEventListener("change",requireGroup);
+        const subject=f("materia","Matéria lecionada","text",{maxLength:100});
+        function updateRole(){
+            const role=row.papel||roleSelect?.value;
+            const teacher=role==="professor";
+            group.parentElement.hidden=teacher;
+            group.disabled=teacher;
+            group.required=role==="aluno";
+            subject.parentElement.hidden=!teacher;
+            subject.disabled=!teacher;
+            subject.required=teacher;
+        }
+        updateRole();roleSelect?.addEventListener("change",updateRole);
         f("ativo","Situação","select",{choices:[["1","Ativo"],["0","Inativo"]]},"1");
         if(!id) f("senha","Senha inicial","password",{minLength:8,maxLength:256});
     }else if(type==="turma"){
@@ -148,7 +210,7 @@ function render() {
     }else{
         const role={inicio:"aluno",administradores:"administrador",professores:"professor"}[page];
         const list=state.accounts.filter(r=>(!role||r.papel===role)&&matches(r.nome+" "+r.matricula,query));
-        table(["Nome","RA","Turma","Situação","Ações"],list,r=>[r.nome,r.matricula,r.turma||"—",badge(r.ativo?"Ativo":"Inativo",!r.ativo),actions("conta",r.matricula)]);
+        table(["Nome","RA",page==="professores"?"Matéria":page==="usuarios"?"Turma / matéria":"Turma","Situação","Ações"],list,r=>[r.nome,r.matricula,(r.papel==="professor"?r.materia:r.turma)||"—",badge(r.ativo?"Ativo":"Inativo",!r.ativo),actions("conta",r.matricula)]);
     }
 }
 document.addEventListener("click",e=>{

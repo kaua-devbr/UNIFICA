@@ -1,0 +1,2 @@
+flet[desktop]==1.1.2
+httpx>=0.28,<1

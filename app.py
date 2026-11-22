@@ -16,6 +16,7 @@ from database.store import Store
 import database.crud as crud
 from database import gestao as academic
 from portal.gestao import admin
+from portal import desktop
 from auth.decorators import login_required
 from dados_demo import AULAS_DEMO, CATEGORIAS, DIAS, DISCIPLINAS_DEMO, MESES
 
@@ -36,7 +37,8 @@ def health():
 @portal.get("/perfil")
 @login_required
 def perfil():
-    return render_template("perfil.html", nome=session["usuario"], nivel=session["nivel"])
+    return render_template("perfil.html", nome=session["usuario"], nivel=session["nivel"],
+                           escola=academic.perfil(current_app.extensions["store"],request.environ["unifica.account"]["matricula"]).get("escola",""))
 
 
 @portal.get("/inicio")
@@ -48,25 +50,14 @@ def inicio():
 @portal.get("/notas")
 @login_required
 def notas():
-    registros = current_app.extensions["store"].query(
-        "SELECT disciplina,periodo,nota,aulas,faltas FROM unifica_notas WHERE matricula=? ORDER BY periodo,disciplina",
-        (request.environ["unifica.account"]["matricula"],), rows=True)
+    registros = desktop.registros_notas(current_app.extensions["store"],request.environ["unifica.account"]["matricula"])
     if registros:
         aulas = sum(r["aulas"] for r in registros)
         faltas = sum(r["faltas"] for r in registros)
         return render_template("notas.html", reais=True, aulas=aulas, faltas=faltas,
             disciplinas=[(f"{r['disciplina']} · {r['periodo']}º bimestre",r["nota"],r["faltas"]) for r in registros],
             media=sum(r["nota"] for r in registros)/len(registros), frequencia=100*(aulas-faltas)/aulas)
-    notas_lancadas = [nota for _, nota, _ in DISCIPLINAS_DEMO if nota is not None]
-    faltas = sum(faltas for _, _, faltas in DISCIPLINAS_DEMO)
-    return render_template(
-        "notas.html",
-        disciplinas=DISCIPLINAS_DEMO,
-        media=sum(notas_lancadas) / len(notas_lancadas),
-        frequencia=100 * (AULAS_DEMO - faltas) / AULAS_DEMO,
-        faltas=faltas,
-        aulas=AULAS_DEMO,
-    )
+    return render_template("notas.html", reais=True, disciplinas=[])
 
 
 @portal.get("/calendario")
@@ -83,9 +74,7 @@ def calendario():
     anterior = (primeiro - timedelta(days=1)).replace(day=1)
     seguinte = (primeiro + timedelta(days=32)).replace(day=1)
     eventos = {}
-    for r in current_app.extensions["store"].query(
-            """SELECT dia,titulo,TIME_FORMAT(inicio,'%H:%i') inicio,TIME_FORMAT(fim,'%H:%i') fim
-               FROM unifica_eventos WHERE dia>=? AND dia<? ORDER BY dia,inicio""",(primeiro,seguinte),rows=True):
+    for r in desktop.agenda(current_app.extensions["store"],primeiro,seguinte):
         eventos.setdefault(r["dia"],[]).append((f"{r['inicio']}–{r['fim']}",r["titulo"]))
     return render_template(
         "calendario.html",
@@ -102,9 +91,7 @@ def calendario():
 @portal.route("/comunicados", methods=["GET", "POST"])
 @login_required
 def comunicados():
-    publicados = current_app.extensions["store"].query(
-        """SELECT id,categoria,titulo,conteudo,publicacao FROM unifica_comunicados
-           WHERE status='Publicado' AND publicacao<=NOW() ORDER BY publicacao DESC,id DESC""", rows=True)
+    publicados = desktop.publicados(current_app.extensions["store"])
     comunicados = [(r["id"],r["categoria"],r["titulo"],r["conteudo"],r["publicacao"].strftime("%d/%m/%Y %H:%M"))
                    for r in publicados]
     categoria = request.args.get("categoria", "todos")
@@ -136,7 +123,8 @@ def configuracoes():
         if request.form.get("acao") == "aparencia":
             tema = request.form.get("tema")
             fonte = request.form.get("fonte")
-            if tema in ("claro", "escuro") and fonte in ("normal", "grande"):
+            if tema in ("claro", "escuro") and fonte in ("pequena", "normal", "grande"):
+                desktop.preferencias(current_app.extensions["store"],request.environ["unifica.account"]["matricula"],tema,fonte)
                 session["tema"] = tema
                 session["fonte"] = fonte
                 flash("Preferências salvas.", "sucesso")
@@ -218,16 +206,21 @@ def excluir_aluno(matricula):
     return redirect("/admin/alunos?excluido=1", 303)
 
 
-def create_app(folder=None):
+def create_app(folder=None, *, mostrar_senha_admin=False):
     folder = Path(folder or ROOT / "instance")
     folder.mkdir(parents=True, exist_ok=True)
     store = Store()
     store.initialize()
     academic.initialize(store)
+    password = None
     if not store.account("admin"):
         password = secrets.token_urlsafe(15)
         store.create("admin", "Administração", "", "", "administrador", password)
         print(f"Primeiro acesso | matrícula: admin | senha: {password}", flush=True)
+
+    if mostrar_senha_admin:
+        from auth.admin_local import mostrar
+        mostrar(store, folder, password)
 
     keyfile = folder / "secret.key"
     if not keyfile.exists():
@@ -246,6 +239,7 @@ def create_app(folder=None):
     web = service("portal_aluno")
     web.register_blueprint(portal)
     web.register_blueprint(admin)
+    web.register_blueprint(desktop.api)
     web.extensions["store"] = store
 
     @web.before_request
@@ -258,6 +252,10 @@ def create_app(folder=None):
             session.clear()
             session.update(sid=sid, usuario=account["nome"], nivel=account["papel"],
                            form_token=secrets.token_urlsafe())
+        session["usuario"] = account["nome"]
+        if request.endpoint and request.endpoint.startswith("portal."):
+            prefs = academic.perfil(store,account["matricula"])
+            session.update(tema=prefs.get("tema","claro"),fonte=prefs.get("fonte","normal"))
         if request.method == "POST" and request.form.get("form_token") != session["form_token"]:
             abort(400)
         if account["papel"] == "administrador" and request.method == "GET":
@@ -279,7 +277,7 @@ def create_app(folder=None):
 
 if __name__ == "__main__":
     from waitress import serve
-    app = create_app()
+    app = create_app(mostrar_senha_admin=True)
     print("UNIFICA disponível em http://127.0.0.1:5000 | Ctrl+C encerra.", flush=True)
     serve(app, host="127.0.0.1", port=5000)
 

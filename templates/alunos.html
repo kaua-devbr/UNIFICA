@@ -26,8 +26,7 @@ block conteudo %}
       maxlength="{{ limite }}"
       {%
       if
-      campo=""
-      ="senha"
+      campo == 'senha'
       %}minlength="8"
       autocomplete="new-password"
       {%

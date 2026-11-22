@@ -40,7 +40,7 @@ def account_change(cur, key, delete):
     f = request.form
     actor = request.environ["unifica.account"]["matricula"]
     if key:
-        cur.execute("SELECT papel, nome, matricula FROM unifica_contas WHERE matricula=%s FOR UPDATE", (key,))
+        cur.execute("SELECT papel, nome, matricula, turma FROM unifica_contas WHERE matricula=%s FOR UPDATE", (key,))
         old = cur.fetchone()
         if not old:
             abort(404)
@@ -55,8 +55,12 @@ def account_change(cur, key, delete):
     if "@" not in email:
         raise ValueError("Confira o e-mail.")
     role = old[0] if key else choice("papel", ("aluno", "administrador", "professor"))
-    turma = value("turma", 80, optional=role != "aluno")
-    if turma:
+    if role == "professor":
+        materia = value("materia", 100)
+        turma = old[3] if key else ""
+    else:
+        turma = value("turma", 80, optional=role != "aluno")
+    if turma and role != "professor":
         cur.execute("INSERT IGNORE INTO unifica_turmas(nome) VALUES (%s)", (turma,))
     active = choice("ativo", ("0", "1"))
     if key:
@@ -69,6 +73,9 @@ def account_change(cur, key, delete):
             raise ValueError("Use uma senha de 8 a 256 caracteres.")
         cur.execute("""INSERT INTO unifica_contas(matricula,nome,email,turma,papel,senha)
                        VALUES (%s,%s,%s,%s,%s,%s)""", (key,nome,email,turma,role,generate_password_hash(pw)))
+    if role == "professor":
+        cur.execute("""INSERT INTO unifica_professor_materia(matricula,materia) VALUES(%s,%s)
+                       ON DUPLICATE KEY UPDATE materia=%s""", (key,materia,materia))
     cur.execute("""INSERT INTO unifica_perfis(matricula,ativo) VALUES(%s,%s)
                    ON DUPLICATE KEY UPDATE ativo=%s""", (key, active, active))
     if active == "0":
@@ -132,7 +139,7 @@ def academic_change(cur, kind, key, delete):
 
 
 @admin.post("/alterar/<kind>")
-def change(kind):
+def change(kind, *, desktop=False):
     store = current_app.extensions["store"]
     ra = request.environ["unifica.account"]["matricula"]
     page = choice("pagina", PAGES)
@@ -153,7 +160,7 @@ def change(kind):
                                        (("cargo",100),("escola",150),("departamento",100),("telefone",40))],ra))
                     else:
                         tema = choice("tema",("claro","escuro"))
-                        fonte = choice("fonte",("normal","grande"))
+                        fonte = choice("fonte",("pequena","normal","grande"))
                         cur.execute("UPDATE unifica_perfis SET tema=%s,fonte=%s WHERE matricula=%s",(tema,fonte,ra))
                     label = kind.capitalize()
                 elif kind == "conta":
@@ -163,10 +170,16 @@ def change(kind):
                 verb = "Exclusão" if delete else "Atualização" if key or kind in ("perfil","preferencias") else "Cadastro"
                 cur.execute("""INSERT INTO unifica_atividade(momento,acao,tipo,matricula)
                                VALUES(NOW(),%s,'gestao',%s)""",(f"{verb} · {kind} · {label}"[:200],ra))
+        if desktop:
+            return {"ok": True}
         flash("Exclusão concluída." if delete else "Alterações salvas com sucesso.", "sucesso")
     except IntegrityError:
+        if desktop:
+            return {"erro": "Registro duplicado ou vinculado a outro cadastro."}, 409
         flash("Registro duplicado ou vinculado a outro cadastro. Confira os dados.", "erro")
     except (ValueError, InvalidOperation) as exc:
+        if desktop:
+            return {"erro": str(exc) if isinstance(exc, ValueError) else "Número inválido."}, 400
         flash(str(exc) if isinstance(exc, ValueError) else "Valor numérico inválido.", "erro")
     params = {}
     if page == "calendario":
@@ -175,7 +188,7 @@ def change(kind):
 
 
 @admin.get("/<page>")
-def screen(page):
+def screen(page, *, desktop=False):
     if page not in PAGES:
         abort(404)
     store = current_app.extensions["store"]
@@ -190,8 +203,9 @@ def screen(page):
         day = today
     first = day.replace(day=1)
     next_month = (first + timedelta(days=32)).replace(day=1)
-    accounts = rows("""SELECT c.matricula,c.nome,c.email,c.turma,c.papel,COALESCE(p.ativo,1) ativo
-                        FROM unifica_contas c LEFT JOIN unifica_perfis p USING(matricula) ORDER BY c.nome""")
+    accounts = rows("""SELECT c.matricula,c.nome,c.email,c.turma,c.papel,m.materia,COALESCE(p.ativo,1) ativo
+                        FROM unifica_contas c LEFT JOIN unifica_perfis p USING(matricula)
+                        LEFT JOIN unifica_professor_materia m USING(matricula) ORDER BY c.nome""")
     events = rows("""SELECT id,titulo,DATE_FORMAT(dia,'%Y-%m-%d') dia,TIME_FORMAT(inicio,'%H:%i') inicio,
                           TIME_FORMAT(fim,'%H:%i') fim,descricao FROM unifica_eventos ORDER BY dia,inicio""")
     notices = rows("""SELECT id,titulo,conteudo,DATE_FORMAT(publicacao,'%Y-%m-%dT%H:%i') publicacao,
@@ -208,9 +222,13 @@ def screen(page):
         d=today-timedelta(days=6-i)
         series.append(dict(dia=d.strftime("%d/%m"), **{k:index.get(d,{}).get(k,0) for k in ("acessos","alunos")}))
     personal = perfil(store,request.environ["unifica.account"]["matricula"])
+    actions = rows("SELECT acao,momento FROM unifica_atividade WHERE tipo='gestao' ORDER BY id DESC LIMIT 6")
+    if desktop:
+        return dict(accounts=accounts, groups=groups, events=events, notices=notices, grades=grades,
+                    personal=personal, series=series, actions=actions)
     return render_template("gestao.html",page=page,accounts=accounts,groups=groups,events=events,
         notices=notices,grades=grades,personal=personal,series=series,
-        actions=rows("SELECT acao,momento FROM unifica_atividade WHERE tipo='gestao' ORDER BY id DESC LIMIT 6"),
+        actions=actions,
         today=today.isoformat(),now=datetime.now().strftime("%Y-%m-%dT%H:%M"),day=day,
         month=MESES[day.month-1],weeks=Calendar(6).monthdatescalendar(day.year,day.month),
         previous=first-timedelta(days=1),following=next_month)

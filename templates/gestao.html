@@ -39,11 +39,9 @@
           href="{{ p }}"
           {%
           if
-          p=""
-          ="page"
+          p == page
           or
-          (p=""
-          ="inicio"
+          (p == 'inicio'
           and
           page
           in
@@ -267,8 +265,7 @@
                 href="?dia={{ d }}"
                 {%
                 if
-                d=""
-                ="day"
+                d == day
                 %}aria-current="date"
                 {%
                 endif
@@ -369,7 +366,7 @@
           {{ csrf() }}
           <h2>Estilo de página</h2>
           {% for k,t,opts in
-          [('tema','Tema',[('claro','Branco'),('escuro','Escuro')]),('fonte','Fonte',[('normal','Normal'),('grande','Grande')])]
+          [('tema','Tema',[('claro','Claro'),('escuro','Escuro')]),('fonte','Fonte',[('pequena','Pequena'),('normal','Normal'),('grande','Grande')])]
           %}<label
             >{{ t }}<select name="{{ k }}">
               {% for v,label in opts %}
@@ -377,8 +374,7 @@
                 value="{{ v }}"
                 {%
                 if
-                personal.get(k)=""
-                ="v"
+                personal.get(k) == v
                 %}selected{%
                 endif
                 %}

@@ -1,5 +1,8 @@
 
 SCHEMA = (
+    """CREATE TABLE IF NOT EXISTS unifica_professor_materia (
+        matricula VARCHAR(60) PRIMARY KEY, materia VARCHAR(100) NOT NULL,
+        FOREIGN KEY (matricula) REFERENCES unifica_contas(matricula) ON DELETE CASCADE)""",
     """CREATE TABLE IF NOT EXISTS unifica_perfis (
         matricula VARCHAR(60) PRIMARY KEY, ativo BOOLEAN NOT NULL DEFAULT TRUE,
         cargo VARCHAR(100) NOT NULL DEFAULT '', escola VARCHAR(150) NOT NULL DEFAULT '',

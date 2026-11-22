@@ -21,12 +21,13 @@
                 <input type="hidden" name="acao" value="aparencia">
                 <label class="painel destaque">Tema
                     <select name="tema">
-                        <option value="claro"{% if session.get('tema', 'claro') == 'claro' %} selected{% endif %}>Branco</option>
+                        <option value="claro"{% if session.get('tema', 'claro') == 'claro' %} selected{% endif %}>Claro</option>
                         <option value="escuro"{% if session.get('tema') == 'escuro' %} selected{% endif %}>Escuro</option>
                     </select>
                 </label>
                 <label class="painel destaque">Fonte
                     <select name="fonte">
+                        <option value="pequena"{% if session.get('fonte') == 'pequena' %} selected{% endif %}>Pequena</option>
                         <option value="normal"{% if session.get('fonte', 'normal') == 'normal' %} selected{% endif %}>Normal</option>
                         <option value="grande"{% if session.get('fonte') == 'grande' %} selected{% endif %}>Grande</option>
                     </select>

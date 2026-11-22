@@ -30,6 +30,7 @@
     --sombra: 7px 10px 15px #0005;
 }
 
+:root[data-fonte="pequena"] { font-size: 87.5%; }
 :root[data-fonte="grande"] { font-size: 118.75%; }
 .portal, .portal * { box-sizing: border-box; }
 .portal {
